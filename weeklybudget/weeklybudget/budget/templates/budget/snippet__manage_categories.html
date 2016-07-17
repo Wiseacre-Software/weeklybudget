@@ -1,0 +1,98 @@
+    <form id="form__manage_categories">
+        <table id="table__manage_categories">
+            <tr>
+                <td>
+                    <input type="hidden" id="payment_id" name="payment_id" />
+                    {{ form.non_field_errors }}
+                </td>
+            </tr>
+            <tr class="tr__manage_categories_list_labels">
+                <td style="width:30%"><label for="{{ form.payment_type.id_for_label }}">Payment Type</label></td>
+                <td style="width:30%"><label for="{{ form.category.id_for_label }}">Category</label></td>
+                <td style="width:30%"><label for="{{ form.subcategory.id_for_label }}">Subcategory</label></td>
+                <td class="td_spacer" style="width:10%"></td>
+            </tr>
+            <tr>
+                <td>{{ form.payment_type }}</td>
+                <td>{{ form.category }}</td>
+                <td>{{ form.subcategory }}</td>
+            </tr>
+            <tr class="tr__category_update">
+                <td id="td__payment_type_update">
+                    <input type="text" id="txt__payment_type_update"  existingEntry="id_payment_type"  style="display: none"/>
+                    <button id="button__payment_type_update" style="display: none">Add</button>
+                </td>
+                <td id="td__category_update">
+                    <input type="text" id="txt__category_update" existingEntry="id_category"  style="display: none"/>
+                    <button id="button__category_update" style="display: none">Add</button>
+                </td>
+                <td id="td__subcategory_update">
+                    <input type="text" id="txt__subcategory_update" existingEntry="id_subcategory"  style="display: none"/>
+                    <button id="button__subcategory_update" style="display: none">Add</button>
+                </td>
+            </tr>
+            <tr id="tr__category_update_validation_errors">
+                <td>
+                    <div class="valid error_message_field ui-state-error ui-corner-all">
+                        <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                        <label id="txt__payment_type_update-error" class="error ui-widget" for="txt__payment_type_update"></label>
+                    </div>
+                </td>
+                <td>
+                    <div class="valid error_message_field ui-state-error ui-corner-all">
+                        <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                        <label id="button__category_update-error" class="error ui-widget" for="txt__category_update"></label>
+                    </div>
+                </td>
+                <td>
+                    <div class="valid error_message_field ui-state-error ui-corner-all">
+                        <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                        <label id="txt__subcategory_update-error" class="error ui-widget" for="txt__subcategory_update"></label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button id="button__edit_payment_type">Edit</button>
+                    <button id="button__new_payment_type">New</button>
+                    <button id="button__delete_payment_type">Delete</button>
+                </td>
+                <td id="td__category_buttons">
+                    <button id="button__edit_category">Edit</button>
+                    <button id="button__new_category">New</button>
+                    <button id="button__delete_category">Delete</button>
+                </td>
+                <td id="td__subcategory_buttons">
+                    <button id="button__edit_subcategory">Edit</button>
+                    <button id="button__new_subcategory">New</button>
+                    <button id="button__delete_subcategory">Delete</button>
+                </td>
+                <td><button id="button__manage_categories_done" style="margin-left: 10px">Done</button></td>
+            </tr>
+        </table>
+    </form>
+
+    <div id="div__manage_categories__error_messages" class="error_message">
+        <div class="ui-state-error ui-corner-all" style="padding: 0 .7em;">
+            <p>
+                <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                <strong>Alert: </strong><span id="span__manage_categories__error_messages" class="ui-widget"></span>
+            </p>
+        </div>
+    </div>
+
+    <script language="javascript">
+        try {
+            var categorymap = jQuery.parseJSON("{{ categorymap }}");
+            var payment_types = jQuery.parseJSON("{{ manage_payment_types }}".replace(/&quot;/g,'"'));
+            var categories = jQuery.parseJSON("{{ manage_categories }}".replace(/&quot;/g,'"'));
+            var subcategories = jQuery.parseJSON("{{ manage_subcategories }}".replace(/&quot;/g,'"'));
+            <!--var schedule_frequencies = jQuery.parseJSON("list_schedule_frequency".replace(/&quot;/g,'"'));-->
+            console.log('context read in');
+        } catch (e) {
+            console.log('context not read in: ' + e);
+            //console.log("{{ manage_payment_types }}".replace(/&quot;/g,'"'));
+        }
+
+        initManageCategories(categorymap);
+    </script>

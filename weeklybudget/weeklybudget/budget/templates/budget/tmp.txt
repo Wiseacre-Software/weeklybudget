@@ -1,0 +1,13 @@
+ONCE_OFF = 0
+    WEEKLY = 1
+    MONTHLY = 2
+    ANNUAL = 3
+    SPECIFIED = 4
+    FREQUENCY_CHOICES = (
+        (ONCE_OFF, 'Once Off'),
+        (WEEKLY, 'Weekly'),
+        (MONTHLY, 'Monthly'),
+        (ANNUAL, 'Annual'),
+        (SPECIFIED, 'User Specified')
+    )
+

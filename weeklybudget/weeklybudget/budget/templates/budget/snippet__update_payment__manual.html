@@ -1,0 +1,69 @@
+        <table id="table__payment_detail">
+            <tr>
+                <td><label for="payment_title">Title: </label></td>
+                <td><input id="payment_title" name="payment_title" type="text" value="{% if payment %}{{ payment.title }}{% endif %}" /></td>
+                <td><label for="payment_amount">Amount: </label></td>
+                <td><input id="payment_amount" name="payment_amount" type="text" value="{% if payment %}{{ payment.amount }}{% endif %}" /></td>
+            </tr>
+            <tr>
+                <td><label for="payment_type">Payment Type: </label></td>
+                <td>
+                    <select id="payment_type" name="payment_type">
+                        {% if not payment %}
+                            <option value="0" selected="selected">-- Select Payment Type --</option>
+                        {% endif %}
+                        {% for payment_type in payment_types %}
+                            <option value="{{ payment_type.id }}" {% ifequal payment_type.id payment.subcategory.category.payment_type.id %} selected="selected" {% endifequal %} >{{ payment_type.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><label for="payment_category">Category: </label></td>
+                <td>
+                    <select id="payment_category" name="payment_category">
+                        {% if not payment %}
+                            <option value="0" selected="selected">-- Select Category --</option>
+                        {% endif %}
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% ifequal category.id payment.subcategory.category.id %} selected="selected" {% endifequal %} >{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><label for="payment_subcategory">Sub Category: </label></td>
+                <td>
+                    <select id="payment_subcategory" name="payment_subcategory">
+                        {% if not payment %}
+                            <option value="0" selected="selected">-- Select Subcategory --</option>
+                        {% endif %}
+                        {% for subcategory in subcategories %}
+                            <option value="{{ subcategory.id }}" {% ifequal subcategory.id payment.subcategory.id %} selected="selected" {% endifequal %} >{{ subcategory.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><button id="button__manage_categories">Manage Categories</button></td>
+            </tr>
+            <tr>
+                <td><label for="schedule_frequency">Schedule: </label></td>
+                <td>
+                    <select id="schedule_frequency" name="schedule_frequency">
+                        {% if not payment %}
+                            <option value="0" selected="selected">-- Select Schedule Type --</option>
+                        {% endif %}
+                        {% for schedule_frequency in schedule_frequencies %}
+                            <option value="{{ schedule_frequency.id }}" {% ifequal schedule_frequency.id payment.schedule.frequency.id %} selected="selected" {% endifequal %} >{{ schedule_frequency.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><label for="schedule_next_date">Title: </label></td>
+                <td><input id="schedule_next_date" name="schedule_next_date" type="text" value="{% if payment %}{{ payment.title }}{% endif %}" /></td>
+            </tr>
+            <tr>
+                <td colspan="6" style="text-align: right">
+                    <button id="button__update_payment_save_changes">Update</button>
+                    <button id="button__update_payment_cancel">Cancel</button>
+                </td>
+            </tr>
+        </table>
+
+    <script language="javascript">
+        initUpdatePayment();
+    </script>

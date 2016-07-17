@@ -1,0 +1,34 @@
+<div id="div__accounts">
+    <table id="table__accounts">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bank_account in bank_accounts %}
+            <tr data-bank_account_id="{{ bank_account.pk }}"
+                data-bank_account_title="{{ bank_account.title }}"
+                data-bank_account_balance="{{ bank_account.current_balance }}">
+                <td class="td__bank_account_title">{{ bank_account.title }}</td>
+                <td class="td__bank_account_balance">{{ bank_account.current_balance }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td style="text-align:right">Total:</td>
+                <td class="td__bank_account_total_balance"></td>
+            </tr>
+        </tfoot>
+    </table>
+    <div>
+        <span id="span_add_account_form"></span>
+        <a id="href__add_account">+ Add Account</a>
+    </div>
+</div>
+
+<script>
+    initBankAccountView();
+</script>
