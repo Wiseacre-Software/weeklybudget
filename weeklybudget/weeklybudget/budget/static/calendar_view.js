@@ -52,14 +52,6 @@ function initCalendarView() {
                 },
                 className: "dt-nowrap"
             },
-//            {
-//                data: 'category',
-//                className: "dt-nowrap calendar__category calendar__payment_classification"
-//            },
-//            {
-//                data: 'subcategory',
-//                className: "dt-nowrap calendar__subcategory calendar__payment_classification"
-//            },
             {
                 data: 'title',
                 className: "calendar__title"
@@ -85,7 +77,10 @@ function initCalendarView() {
             {
                 data: 'payment_id',
                 render: function ( data, type, row ) {
-                    return ("<button class='button-paid-received' data-payment_id='" + data + "'>Update</button>");
+                    var render_html = "<button class='button-paid-received' data-payment_id='" + data + "'>Mark Payment as Paid/Received</button>"
+                     render_html += "<button class='button-insert-payment' data-payment_id='" + data + "' "
+                     + "data-payment_date='" + moment(row.payment_date).format("YYYY-MM-DD") + "'>Insert New Payment</button>"
+                    return (render_html);
                 },
                 className: "calendar__actions dt-center"
             }
@@ -123,6 +118,12 @@ var calendarLoadComplete = function( settings, json ) {
             text: false
         })
         .click(_.once(processCalendarMarkAsPaidReceived));
+    $('#table__calendar .button-insert-payment')
+        .button( {
+            icons: { primary: 'ui-icon-plus', secondary: null },
+            text: false
+        })
+        .click(_.debounce(insertPayment, MILLS_TO_IGNORE_CLICKS, true));
     $('#table__calendar tr:last').after(
         '<tr>'
             + '<td colspan="9" style="text-align: center">'
@@ -173,6 +174,11 @@ var calendarLoadComplete = function( settings, json ) {
     });
 }
 
+var insertPayment = function() {
+    calendar_editing_target_element = $(this);
+    calendarUpdatePaymentDetails("action=blank");
+}
+
 var calendarUpdatePaymentDetails = function (payload) {
     console.info("calendarUpdatePaymentDetails: entering, payload: " + payload);
 
@@ -186,8 +192,26 @@ var calendarUpdatePaymentDetails = function (payload) {
                 var o = JSON.parse(serverResponse_data);
                 console.warn("calendarUpdatePaymentDetails:- serverResponse_data: " + serverResponse_data);
             } catch (e) {
+                // New payment
+                if ($(calendar_editing_target_element).hasClass('button-insert-payment')) {
+                    $('#calendar__overlay').html(serverResponse_data);
+                    $("#calendar__overlay").dialog({
+                        dialogClass: 'dialog-no-titlebar',
+                        modal: true,
+                        minWidth: 700,
+                        minHeight: 250,
+                        position: {
+                            my: "left+10 top",
+                            at: "right bottom",
+                            of: calendar_editing_target_element
+                            }
+                        });
+
+                    // initialise payment form
+                    $("#calendar__overlay #id_next_date").val($(calendar_editing_target_element).closest('td').siblings('.calendar__payment_date').text());
+
                 // Edit date and frequency
-                if ($(calendar_editing_target_element).hasClass('calendar__payment_date')) {
+                } else if ($(calendar_editing_target_element).hasClass('calendar__payment_date')) {
                     $('#calendar__overlay')
                         .html(serverResponse_data)
                         .show()
@@ -206,22 +230,6 @@ var calendarUpdatePaymentDetails = function (payload) {
                     $category = $(calendar_editing_target_element).find('#id_category');
                     $subcategory = $(calendar_editing_target_element).find('#id_subcategory');
 
-//                    var edit_fields = serverResponse_data.split('~~~');
-//                    $('tr[data-payment_id="' + calendar_editing_payment_id + '"]')
-//                        .children('.calendar__payment_date:contains("' + calendar_editing_payment_date + '")')
-//                        .siblings('.calendar__payment_type').off('click').html(edit_fields[0]);
-//                    $('tr[data-payment_id="' + calendar_editing_payment_id + '"]')
-//                        .children('.calendar__payment_date:contains("' + calendar_editing_payment_date + '")')
-//                        .siblings('.calendar__category').off('click').html(edit_fields[1]);
-//                    $('tr[data-payment_id="' + calendar_editing_payment_id + '"]')
-//                        .children('.calendar__payment_date:contains("' + calendar_editing_payment_date + '")')
-//                        .siblings('.calendar__subcategory').off('click').html(edit_fields[2]);
-
-
-//                    $payment_type = $('tr[data-payment_id="' + calendar_editing_payment_id + '"]').find('#id_payment_type');
-//                    $category = $('tr[data-payment_id="' + calendar_editing_payment_id + '"]').find('#id_category');
-//                    $subcategory = $('tr[data-payment_id="' + calendar_editing_payment_id + '"]').find('#id_subcategory');
-//
                     $payment_type
                         .attr('data-placeholder', "Select a Payment Type")
                         .chosen()
@@ -268,24 +276,7 @@ var calendarUpdatePaymentDetails = function (payload) {
                             icons: { primary: 'ui-icon-pencil', secondary: null },
                             text: false
                         });
-                        //.click(_.once(updatePaymentClassification));
-
-//                    $payment_type.closest('tr').find('.button__calendar_edit__classification_update')
-//                        .each(function() {
-//                            $(this).button( {
-//                                    icons: { primary: 'ui-icon-disk', secondary: null },
-//                                    text: false
-//                                })
-//                                .click(_.once(updatePaymentClassification));
-//                        });
-//                    $payment_type.closest('tr').find('.button__calendar_edit__classification_edit')
-//                        .each(function() {
-//                            $(this).button( {
-//                                    icons: { primary: 'ui-icon-pencil', secondary: null },
-//                                    text: false
-//                                })
-//                                .click(_.once(updatePaymentClassification));
-//                        });
+                        //TODO .click(_.once(updatePaymentClassification));
                 }
             }
         })

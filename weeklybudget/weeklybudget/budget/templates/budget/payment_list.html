@@ -16,14 +16,11 @@
                         <tr>
                             <th>Date</th>
                             <th>Classification</th>
-                            <!--<th class="hide-in-compact">Type</th>-->
-                            <!--<th class="hide-in-compact">Category</th>-->
-                            <!--<th class="hide-in-compact">Subcategory</th>-->
                             <th>Name</th>
                             <th>Outgoing</th>
                             <th>Incoming</th>
                             <th>Balance</th>
-                            <th>Paid/Received</th>
+                            <th>Actions</th>
                         </tr>
                         </thead>
                     </table>
@@ -35,51 +32,11 @@
         <div class="col-divider col">
             <div class="divider">
                 <img id="img__calendar_view_toggle" class="img__divider" src="{% static 'jquery.mobile.images-1.4.5/carat-l-black.png' %}" />
-                <!--<button id="button__toggle_calendar" class="button__divider">Hide Calendar</button>-->
             </div>
         </div>
         <div class="bank_accounts_pane col">
             <div class="bank_account_view"></div>
         </div>
-        <!--<div class="col-divider col">-->
-            <!--<div class="divider">-->
-                <!--<img id="img__payments_view_toggle" class="img__divider" src="{% static 'jquery.mobile.images-1.4.5/carat-u-black.png' %}" />-->
-                <!--&lt;!&ndash;<button id="button__toggle_payments" class="button__divider">Show Payments</button>&ndash;&gt;-->
-            <!--</div>-->
-        <!--</div>-->
-        <!--<div class="payments_pane col">-->
-    <!--<div>-->
-      <!--{% if  payments.count == 0 %}-->
-         <!--<p><i>There are no payments in the database.</i></p>-->
-      <!--{% else %}-->
-         <!--<table class="payment-table display" id="table__payments">-->
-            <!--<thead>-->
-            <!--<tr>-->
-                <!--<th class="hide-in-compact">Type</th>-->
-                <!--<th class="hide-in-compact">Category</th>-->
-                <!--<th class="hide-in-compact">Subcategory</th>-->
-                <!--<th>Payment</th>-->
-                <!--<th>Amount</th>-->
-                <!--<th>In/Out</th>-->
-                <!--<th>Frequency</th>-->
-                <!--<th>Next Payment</th>-->
-                <!--<th>Action</th>-->
-                <!--&lt;!&ndash;<th></th>&ndash;&gt;-->
-            <!--</tr>-->
-            <!--</thead>-->
-         <!--</table>-->
-      <!--{% endif %}-->
-        <!--<button id="button__add_payment" data-payment_id="-1">+ Add Payment</button>-->
-    <!--</div>-->
-
-    <!--<div id="payment_detail" class="subform">-->
-
-    <!--</div>-->
-
-    <!--<div id="manage_categories" class="subform">-->
-
-    <!--</div>-->
-    <!--</div>-->
     </div>
 
     <script type='text/javascript' src="{% static 'bank_account.js' %}"></script>

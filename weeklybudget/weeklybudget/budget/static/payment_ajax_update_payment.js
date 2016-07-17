@@ -57,6 +57,11 @@ function initUpdatePayment() {
 
     // hook up events
     $('#button__manage_categories').click(_.debounce(processManageCategories,MILLS_TO_IGNORE_CLICKS, true));
+    $('#button__update_payment_save_changes').click( submit_payment_detail_form );
+    $('#button__update_payment_cancel').click(function() {
+        event.preventDefault();
+        $( "#calendar__overlay" ).dialog( "close" );
+    });
 
     $('#id_subcategory')
         .attr('data-placeholder', "None")
@@ -125,13 +130,12 @@ function initUpdatePayment() {
 
     // for Add Payment functionality
     if ($('#id_title').val() === '') {
-        $('#button__update_payment_save_changes').val('Add');
+        $( "#button__update_payment_save_changes" ).button( "option", "label", "Add" );
         $('#id_category').val('0');
         $('#id_category').trigger("chosen:updated");
         $('#id_subcategory').val('0');
         $('#id_subcategory').trigger("chosen:updated");
     }
-
 
     // frequency fields
     $('.select__schedule_frequency').change(initialiseFrequencyDetails);
@@ -170,7 +174,7 @@ function initUpdatePayment() {
     });
 
     // Submit post on submit
-    $('#form__payment_detail').on('submit', submit_payment_detail_form);
+//    $('#form__payment_detail').on('submit', submit_payment_detail_form);
 };
 
 var submit_payment_detail_form = function(event){

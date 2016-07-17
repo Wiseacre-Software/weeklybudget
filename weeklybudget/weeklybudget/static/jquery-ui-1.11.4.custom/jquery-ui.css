@@ -475,7 +475,7 @@ button.ui-button::-moz-focus-inner {
 	border-left-width: 1px;
 }
 .ui-dialog {
-	overflow: hidden;
+	overflow: visible;
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -1214,6 +1214,11 @@ body .ui-tooltip {
 	background: #aaaaaa;
 	opacity: .3;
 	filter: Alpha(Opacity=30); /* support: IE8 */
+	position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 .ui-widget-shadow {
 	/*margin: 0px 0 0 0px;
