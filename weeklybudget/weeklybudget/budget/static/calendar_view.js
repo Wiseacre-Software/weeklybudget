@@ -87,6 +87,7 @@ function initCalendarView() {
         ],
         "createdRow": function( row, data, dataIndex ) {
             $(row).attr('data-payment_id', data['payment_id']);
+            $(row).addClass('tr-dt');
         }
     });
 
@@ -194,21 +195,18 @@ var calendarUpdatePaymentDetails = function (payload) {
             } catch (e) {
                 // New payment
                 if ($(calendar_editing_target_element).hasClass('button-insert-payment')) {
-                    $('#calendar__overlay').html(serverResponse_data);
-                    $("#calendar__overlay").dialog({
-                        dialogClass: 'dialog-no-titlebar',
-                        modal: true,
-                        minWidth: 700,
-                        minHeight: 250,
-                        position: {
-                            my: "left+10 top",
-                            at: "right bottom",
-                            of: calendar_editing_target_element
-                            }
-                        });
-
-                    // initialise payment form
-                    $("#calendar__overlay #id_next_date").val($(calendar_editing_target_element).closest('td').siblings('.calendar__payment_date').text());
+                    new_row = '<tr class="tr__calendar_inline_edit_row">';
+                    new_row += '<td colspan="' + ($(calendar_editing_target_element).closest('td').siblings('td').length + 1) + '">';
+                    new_row += serverResponse_data;
+                    new_row += '</td></tr>';
+                    $(calendar_editing_target_element).closest('tr').after(new_row);
+                    $new_row = $(calendar_editing_target_element).closest('tr').next('tr');
+                    $new_row.find("#id_next_date").val($(calendar_editing_target_element).closest('td').siblings('.calendar__payment_date').text());
+//                    $('#button__manage_categories').click(_.debounce(function (event) {
+//                        event.preventDefault;
+//                        processManageCategories();
+//                    }),MILLS_TO_IGNORE_CLICKS, true);    //todo: to be implemented in new row
+                    $new_row.find("#id_title").focus();
 
                 // Edit date and frequency
                 } else if ($(calendar_editing_target_element).hasClass('calendar__payment_date')) {

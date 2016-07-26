@@ -1,18 +1,38 @@
 //THIS FILE MUST BE IMPORTED BEFORE THE "main" FILE.
 
-var processManageCategories = function()  {
-    /***** update UI *****/
-    event.preventDefault();
+var processManageCategories = function(payload)  {
+    console.info('processManageCategories: entering, payload: ' + payload);
 
-   var config = {
-      url: URL__MANAGE_CATEGORIES,
-      dataType: 'html',
-      success: processManageCategoriesServerResponse,
-      cache: false
-      //Should also have a "fail" call as well.
-   };
-   $.ajax(config);
-};
+    var jqxhr = $.ajax({
+            method: "POST",
+            url: URL__MANAGE_CATEGORIES,
+            data: payload
+        })
+        .done(function(serverResponse_data) {
+            try {
+                var o = JSON.parse(serverResponse_data);
+                if (o.Exception) {
+                    showErrorMessage(o.Exception);
+                }
+            } catch (e) {
+                // update was successful and new html for updated combos received
+                $edit_row = $('.tr__calendar_inline_edit_row');
+                new_row = '<td colspan="' + ($edit_row.prev('tr').children('td').length) + '">';
+                new_row += serverResponse_data;
+                new_row += '</td>';
+                if ($('.tr__calendar_inline_manage_categories').length == 0) {
+                    $edit_row.after('<tr class="tr__calendar_inline_manage_categories">' + new_row + '</tr>');
+                } else {
+                    $('.tr__calendar_inline_manage_categories').html(new_row);
+                }
+
+                // Update combos in Update Payment form
+                updatePaymentFormCategoryCombos('payment_type');
+                updatePaymentFormCategoryCombos('category');
+                updatePaymentFormCategoryCombos('subcategory');
+            }
+        });
+}
 
 
 function initManageCategories(categorymap) {
@@ -36,7 +56,7 @@ function initManageCategories(categorymap) {
         });
 
     // jquery-ui
-    $('#table__manage_categories select, #table__manage_categories label, #table__manage_categories option').addClass('ui-widget');
+//    $('#table__manage_categories select, #table__manage_categories label, #table__manage_categories option').addClass('ui-widget');
     $('#table__manage_categories button').button();
 
     // hook up events
@@ -227,35 +247,9 @@ function updateCategoryValues() {
     }
 
     if (payload) {
-        var config = {
-            type: "GET",
-            url: URL__MANAGE_CATEGORIES,
-            data: payload,
-            dataType: 'html',
-            success: processManageCategoriesServerResponse,
-            error: ajaxErr,
-            cache: false
-        };
-        $.ajax(config);
+        processManageCategories(payload);
     }
 };
-
-var processManageCategoriesServerResponse = function(serverResponse_data, textStatus_ignored, jqXHR_ignored) {
-    try {
-        var o = JSON.parse(serverResponse_data);
-        if (o.Exception) {
-            showErrorMessage(o.Exception);
-        }
-    } catch (e) {
-        // update was successful and new html for updated combos received
-        $('#manage_categories').html(serverResponse_data);
-
-        // Update combos in Update Payment form
-        updatePaymentFormCategoryCombos('payment_type');
-        updatePaymentFormCategoryCombos('category');
-        updatePaymentFormCategoryCombos('subcategory');
-    }
-}
 
 var showErrorMessage = function(error_message) {
     $('#div__manage_categories__error_messages').show();
@@ -267,7 +261,7 @@ var updatePaymentFormCategoryCombos = function(which_combo) {
     var curr_selection = select__which_combo.val();
     select__which_combo.empty();
     $('#form__manage_categories #id_' + which_combo + ' option').each( function() {
-        select__which_combo.append($("<option class='ui-widget'></option>")
+        select__which_combo.append($("<option></option>")
             .val($(this).val())
             .html($(this).html()));
     })

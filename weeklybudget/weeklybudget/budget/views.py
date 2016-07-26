@@ -250,7 +250,7 @@ def update_payment(request):
 
     except Exception as e:
         error_message = '{ "Exception type": "%s", "Exception": "%s" }' % \
-                        (str(type(e)), e.messages if 'messages' in e else e.message)
+                        (str(type(e)), e.messages if hasattr(e, 'messages') else e.message)
         logger.error(error_message)
         return HttpResponse(error_message, content_type="application/json")
 
@@ -390,76 +390,77 @@ def update_payment_classification(request):
 @login_required
 @ensure_csrf_cookie
 def manage_categories(request):
+    logger.info('manage_categories:- entering')
     try:
         context = dict()
         context['result_success'] = 'pass'
         context['result_message'] = 'Categories updated!'
 
-        if 'new_payment_type' in request.GET:
-            if PaymentType.objects.filter(owner=request.user).filter(name__iexact=request.GET['new_payment_type']) \
+        if 'new_payment_type' in request.POST:
+            if PaymentType.objects.filter(owner=request.user).filter(name__iexact=request.POST['new_payment_type']) \
                     .count() > 0:
                 # name must be unique for user
                 raise RuntimeError('Payment Type of that name already exists')
 
-            pt = PaymentType(name=request.GET['new_payment_type'], owner=request.user)
+            pt = PaymentType(name=request.POST['new_payment_type'], owner=request.user)
             pt.save()
 
-        elif 'new_category' in request.GET:
-            if Category.objects.filter(owner=request.user).filter(name__iexact=request.GET['new_category']).count() > 0:
+        elif 'new_category' in request.POST:
+            if Category.objects.filter(owner=request.user).filter(name__iexact=request.POST['new_category']).count() > 0:
                 # name must be unique for user
                 raise RuntimeError('Category of that name already exists')
 
-            pt = PaymentType.objects.get(pk=request.GET['payment_type'], owner=request.user)
-            c = Category(name=request.GET['new_category'], payment_type=pt, owner=request.user)
+            pt = PaymentType.objects.get(pk=request.POST['payment_type'], owner=request.user)
+            c = Category(name=request.POST['new_category'], payment_type=pt, owner=request.user)
             c.save()
 
-        elif 'new_subcategory' in request.GET:
-            if SubCategory.objects.filter(owner=request.user).filter(name__iexact=request.GET['new_subcategory']) \
+        elif 'new_subcategory' in request.POST:
+            if SubCategory.objects.filter(owner=request.user).filter(name__iexact=request.POST['new_subcategory']) \
                     .count() > 0:
                 # name must be unique for user
                 raise RuntimeError('Subcategory of that name already exists')
 
-            c = Category.objects.get(pk=request.GET['category'], owner=request.user)
-            sc = SubCategory(name=request.GET['new_subcategory'], category=c, owner=request.user)
+            c = Category.objects.get(pk=request.POST['category'], owner=request.user)
+            sc = SubCategory(name=request.POST['new_subcategory'], category=c, owner=request.user)
             sc.save()
 
-        elif 'delete_payment_type' in request.GET:
-            PaymentType.objects.get(pk=request.GET['delete_payment_type'], owner=request.user).delete()
+        elif 'delete_payment_type' in request.POST:
+            PaymentType.objects.get(pk=request.POST['delete_payment_type'], owner=request.user).delete()
 
-        elif 'delete_category' in request.GET:
-            Category.objects.get(pk=request.GET['delete_category'], owner=request.user).delete()
+        elif 'delete_category' in request.POST:
+            Category.objects.get(pk=request.POST['delete_category'], owner=request.user).delete()
 
-        elif 'delete_subcategory' in request.GET:
-            SubCategory.objects.get(pk=request.GET['delete_subcategory'], owner=request.user).delete()
+        elif 'delete_subcategory' in request.POST:
+            SubCategory.objects.get(pk=request.POST['delete_subcategory'], owner=request.user).delete()
 
-        elif 'edit_payment_type_id' in request.GET:
+        elif 'edit_payment_type_id' in request.POST:
             if PaymentType.objects.filter(owner=request.user) \
-                    .filter(name__iexact=request.GET['edit_payment_type_name']).count() > 0:
+                    .filter(name__iexact=request.POST['edit_payment_type_name']).count() > 0:
                 # name must be unique for user
                 raise RuntimeError('Payment Type of that name already exists')
 
-            pt = PaymentType.objects.get(pk=request.GET['edit_payment_type_id'], owner=request.user)
-            pt.name = request.GET['edit_payment_type_name']
+            pt = PaymentType.objects.get(pk=request.POST['edit_payment_type_id'], owner=request.user)
+            pt.name = request.POST['edit_payment_type_name']
             pt.save()
 
-        elif 'edit_category_id' in request.GET:
-            if Category.objects.filter(owner=request.user).filter(name__iexact=request.GET['edit_category_name']) \
+        elif 'edit_category_id' in request.POST:
+            if Category.objects.filter(owner=request.user).filter(name__iexact=request.POST['edit_category_name']) \
                     .count() > 0:
                 # name must be unique for user
                 raise RuntimeError('Category of that name already exists')
 
-            c = Category.objects.get(pk=request.GET['edit_category_id'], owner=request.user)
-            c.name = request.GET['edit_category_name']
+            c = Category.objects.get(pk=request.POST['edit_category_id'], owner=request.user)
+            c.name = request.POST['edit_category_name']
             c.save()
 
-        elif 'edit_subcategory_id' in request.GET:
+        elif 'edit_subcategory_id' in request.POST:
             if SubCategory.objects.filter(owner=request.user) \
-                    .filter(name__iexact=request.GET['edit_subcategory_name']).count() > 0:
+                    .filter(name__iexact=request.POST['edit_subcategory_name']).count() > 0:
                 # name must be unique for user
                 raise RuntimeError('Subcategory of that name already exists')
 
-            sc = SubCategory.objects.get(pk=request.GET['edit_subcategory_id'], owner=request.user)
-            sc.name = request.GET['edit_subcategory_name']
+            sc = SubCategory.objects.get(pk=request.POST['edit_subcategory_id'], owner=request.user)
+            sc.name = request.POST['edit_subcategory_name']
             sc.save()
 
         context['form'] = CategoriesForm(request.user)
@@ -543,6 +544,8 @@ def generate_calendar_view(request):
 
         sorted_payment_calendar = sorted(payment_calendar, key=itemgetter('payment_date'))
         for pc in sorted_payment_calendar:
+            if 'amount' not in pc or pc['amount_value'] is None:
+                logger.error('generate_calendar_view:- no amount: %s' % pc)
             if pc['in_out'] == 'i':
                 curr_balance += pc['amount_value']
             else:
@@ -650,6 +653,7 @@ def build_payment_frequency(p, cleaned_data):
 
     ps.next_date = cleaned_data['next_date']
     ps.frequency = PaymentScheduleFrequency.objects.get(pk=cleaned_data['schedule_frequency'])
+    logger.info('build_payment_frequency:- frequency: %s' % ps.frequency.name)
 
     # Weekly fields
     ps.weekly_dow_mon = cleaned_data['weekly_dow_mon']
@@ -668,7 +672,14 @@ def build_payment_frequency(p, cleaned_data):
     ps.monthly_dow = int(cleaned_data['monthly_dow']) if cleaned_data['monthly_dow'] else 0
     # ps.last_payment_date = date.max
 
+    # Annual fields
+    ps.annual_dom = int(cleaned_data['annual_dom']) if cleaned_data['annual_dom'] else 0
+    ps.annual_moy = int(cleaned_data['annual_moy']) if cleaned_data['annual_moy'] else 0
+    ps.annual_frequency = int(cleaned_data['annual_frequency']) if cleaned_data['annual_frequency'] else 0
+
+    logger.info('build_payment_frequency:- about to full_clean')
     ps.full_clean()
+    logger.info('build_payment_frequency:- full_clean complete')
     ps.save()
 
     if not p.schedule:

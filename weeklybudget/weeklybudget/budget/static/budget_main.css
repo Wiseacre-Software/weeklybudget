@@ -188,8 +188,14 @@ BODY {
     margin-right: 0px !important;
 }
 
-#table__payment_detail {
+#table__payment_detail, #table__manage_categories {
     width: 100%;
+}
+
+#table__payment_detail td, .tr__calendar_inline_edit_row td,
+#table__manage_categories td, .tr__calendar_inline_manage_categories td {
+    background-color: #ddd;
+    padding: 0px 5px !important;
 }
 
 .tr__payment_detail_labels td {
@@ -197,7 +203,7 @@ BODY {
 }
 
 .tr__payment_detail_field_labels {
-    height: 3.0em;
+    height: 2.5em;
     vertical-align: bottom;
 }
 

@@ -1,11 +1,6 @@
     <form id="form__manage_categories">
+    <input type="hidden" id="payment_id" name="payment_id" />
         <table id="table__manage_categories">
-            <tr>
-                <td>
-                    <input type="hidden" id="payment_id" name="payment_id" />
-                    {{ form.non_field_errors }}
-                </td>
-            </tr>
             <tr class="tr__manage_categories_list_labels">
                 <td style="width:30%"><label for="{{ form.payment_type.id_for_label }}">Payment Type</label></td>
                 <td style="width:30%"><label for="{{ form.category.id_for_label }}">Category</label></td>
@@ -88,7 +83,7 @@
             var categories = jQuery.parseJSON("{{ manage_categories }}".replace(/&quot;/g,'"'));
             var subcategories = jQuery.parseJSON("{{ manage_subcategories }}".replace(/&quot;/g,'"'));
             <!--var schedule_frequencies = jQuery.parseJSON("list_schedule_frequency".replace(/&quot;/g,'"'));-->
-            console.log('context read in');
+            console.info('snippet__manage_categories:- context read in');
         } catch (e) {
             console.log('context not read in: ' + e);
             //console.log("{{ manage_payment_types }}".replace(/&quot;/g,'"'));

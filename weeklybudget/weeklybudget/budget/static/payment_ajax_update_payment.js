@@ -18,7 +18,7 @@ function categoryMapLookup(searchtype, val) {
 
 function initUpdatePayment() {
     // jquery-ui
-    $('#form__payment_detail input, #form__payment_detail label, #table__payment_detail td').addClass('ui-widget');
+//    $('#form__payment_detail input, #form__payment_detail label, #table__payment_detail td').addClass('ui-widget');
     $('#form__payment_detail button, #form__payment_detail input:submit').button();
     $("#id_next_date").datepicker({dateFormat: "dd/mm/yy"});
     $('#input__weekly_dow_frequency').spinner({min: 1});
@@ -56,7 +56,11 @@ function initUpdatePayment() {
     initialiseFrequencyDetails();
 
     // hook up events
-    $('#button__manage_categories').click(_.debounce(processManageCategories,MILLS_TO_IGNORE_CLICKS, true));
+    $('#button__manage_categories').click(_.debounce(function (event) {
+        event.preventDefault();
+        $(this).button("disable");
+        processManageCategories();
+    },MILLS_TO_IGNORE_CLICKS, true));
     $('#button__update_payment_save_changes').click( submit_payment_detail_form );
     $('#button__update_payment_cancel').click(function() {
         event.preventDefault();
@@ -178,33 +182,33 @@ function initUpdatePayment() {
 };
 
 var submit_payment_detail_form = function(event){
-        event.preventDefault();
+    event.preventDefault();
 
-        if ($('.select__schedule_frequency option:selected').text() == "Monthly") {
-            if ($("input[name='radio__monthly_style']:checked").val() == 'day_of_month') {
-                $("#id_monthly_dom").val($('#select__monthly_dom_day').val());
-                if ($('#select__monthly_dom_last').val() == 'last') {
-                    $("#id_monthly_dom").val($("#id_monthly_dom").val() * -1);
-                }
-                $('#id_monthly_frequency').val($('#input__monthly_dom_frequency').val());
+    if ($('.select__schedule_frequency option:selected').text() == "Monthly") {
+        if ($("input[name='radio__monthly_style']:checked").val() == 'day_of_month') {
+            $("#id_monthly_dom").val($('#select__monthly_dom_day').val());
+            if ($('#select__monthly_dom_last').val() == 'last') {
+                $("#id_monthly_dom").val($("#id_monthly_dom").val() * -1);
             }
-            else {
-                $('#id_monthly_wom').val($('#select__monthly_wom_nth').val());
-                if ($('#select__monthly_wom_last').val() == 'last') {
-                    $("#id_monthly_wom").val($("#id_monthly_wom").val() * -1);
-                }
-                $('#id_monthly_dow').val($('#select__monthly_wom_day').val());
-                $('#id_monthly_frequency').val($('#input__monthly_wom_frequency').val());
+            $('#id_monthly_frequency').val($('#input__monthly_dom_frequency').val());
+        }
+        else {
+            $('#id_monthly_wom').val($('#select__monthly_wom_nth').val());
+            if ($('#select__monthly_wom_last').val() == 'last') {
+                $("#id_monthly_wom").val($("#id_monthly_wom").val() * -1);
             }
-
-        } else if ($('.select__schedule_frequency option:selected').text() == "Weekly") {
-            $("#id_weekly_frequency").val($('#input__weekly_dow_frequency').val());
+            $('#id_monthly_dow').val($('#select__monthly_wom_day').val());
+            $('#id_monthly_frequency').val($('#input__monthly_wom_frequency').val());
         }
 
-        $("#id_action").val('update');
-        console.info("form submitted: " + $('#form__payment_detail').serialize())  // sanity check
-        processUpdatePayment();
+    } else if ($('.select__schedule_frequency option:selected').text() == "Weekly") {
+        $("#id_weekly_frequency").val($('#input__weekly_dow_frequency').val());
     }
+
+    $("#id_action").val('update');
+    console.info("form submitted: " + $('#form__payment_detail').serialize())  // sanity check
+    processUpdatePayment();
+}
 
 var initialiseFrequencyDetails = function() {
     $('#span__weekly_dow_day').find('input:checkbox').each(function() { $(this).prop('checked',false) });
@@ -258,7 +262,7 @@ var processUpdatePayment = function()  {
     var payload;
     if ($(this).text() === "Update") {     // Update button pressed
         payload = "payment_id=" + $(this).closest('button').data('payment_id') + "&action=view";
-    } else if ($(this).text() === "+ Add Payment") {
+    } else if ($(this).text() === "+ Add Payment") {    //todo: don't think that this is required anymore
         payload = "action=blank";
         $(this).button( "disable" );
 
@@ -289,25 +293,6 @@ var processUpdatePayment = function()  {
         cache: false
     };
     $.ajax(config);
-
-//    payments_table.ajax.reload();
-//    payments_table.draw();
-
-//        payments_table = $('#table__payments').DataTable();
-//
-//        payments_table.row.add( [
-//            $('#id_payment_type option:selected').html(),
-//            $('#id_category option:selected').html(),
-//            $('#id_subcategory option:selected').html(),
-//            $('#id_title').val(),
-//            $('#id_amount').val(),
-//            $('#id_in_out option:selected').html(),
-//            $('#id_schedule_frequency option:selected').html(),
-//            moment($('#id_next_date').datepicker("getDate")).format("MMMM DD, YYYY"),
-//            '',
-//            ''
-//        ] ).draw();
-//    }
 }
 
 var processUpdatePaymentServerResponse = function(serverResponse_data, textStatus_ignored, jqXHR_ignored)  {
@@ -317,7 +302,6 @@ var processUpdatePaymentServerResponse = function(serverResponse_data, textStatu
 
         // look for errors
         if (o["result_success"] == "pass") {
-//            updatePaymentList(o['form_data']);
             payments_table.ajax.reload( paymentListInitComplete );
         } else {
             $('#form__payment_detail input').each( function() {

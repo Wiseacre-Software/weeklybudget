@@ -560,6 +560,32 @@ class UpdatePaymentTest(TestCase):
         self.assertIsNone(p.category, "found a category, expected none")
         self.assertIsNone(p.category, "found a subcategory, expected none")
 
+    def test_create_annual_payment(self):
+        c = Client()
+        self.assertTrue(c.login(username='john', password='johnpassword'))
+        payload = {
+            'action': 'update',
+            'title': 'payment 2',
+            'amount': 1000,
+            'in_out': 'i',
+            'payment_type': PaymentType.objects.get(name__exact='pt1').id,
+            'category': Category.objects.get(name__exact='cat1').id,
+            'subcategory': SubCategory.objects.get(name__exact='subcat1').id,
+            'schedule_frequency': PaymentScheduleFrequency.objects.get(name__exact='Annual').id,
+            'next_date': '20/07/2016',
+            'annual_dom': 20,
+            'annual_moy': 7,
+            'annual_frequency': 1
+        }
+        response = c.post('/budget/update_payment/', payload)
+        response_data = jsonpickle.decode(response.content)
+        self.assertNotIn("Exception", response_data, 'Exception occurred: %s' % response_data)
+        self.assertEqual(response_data["result_success"], "pass", "found %s, expected %s" %
+                         (response_data["result_success"], "pass"))
+        self.assertEqual(response_data["form_data"]['title'], "payment 2", "found %s, expected %s" %
+                         (response_data["form_data"]['title'], "payment 2"))
+
+
 
 class UpdatePaymentDateTest(TestCase):
     def setUp(self):
@@ -639,14 +665,14 @@ class UpdatePaymentDateTest(TestCase):
         self.assertNotIn("Exception", response_data, 'Exception occurred: %s' % response_data)
         self.assertIn('data', response_data, 'Error in response_data: %s' % response_data)
         pc = response_data["data"]
-        self.assertEqual(pc[0]['payment_date'], '2016-06-23', "found %s, expected %s" %
-                         (pc[0]['payment_date'], '2016-06-23'))
-        self.assertEqual(pc[0]['title'], 'Payment 1 - 23/06/2016', "found %s, expected %s" %
-                         (pc[0]['title'], 'Payment 1 - 23/06/2016'))
-        self.assertEqual(pc[1]['payment_date'], '2016-07-05', "found %s, expected %s" %
-                         (pc[1]['payment_date'], '2016-07-05'))
-        self.assertEqual(pc[1]['title'], 'Payment 1', "found %s, expected %s" %
-                         (pc[1]['title'], 'Payment 1'))
+        self.assertEqual(pc[1]['payment_date'], '2016-06-23', "found %s, expected %s" %
+                         (pc[1]['payment_date'], '2016-06-23'))
+        self.assertEqual(pc[1]['title'], 'Payment 1 - 23/06/2016', "found %s, expected %s" %
+                         (pc[1]['title'], 'Payment 1 - 23/06/2016'))
+        self.assertEqual(pc[2]['payment_date'], '2016-07-05', "found %s, expected %s" %
+                         (pc[2]['payment_date'], '2016-07-05'))
+        self.assertEqual(pc[2]['title'], 'Payment 1', "found %s, expected %s" %
+                         (pc[2]['title'], 'Payment 1'))
 
     def test_revert_custom_payment_date_to_original_schedule(self):
         c = Client()
