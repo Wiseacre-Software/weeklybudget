@@ -133,7 +133,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'D:\Dev\PycharmProjects\weeklybudget\log\debug.log',
+            'filename': '../log/debug.log',
             'formatter': 'verbose'
         },
     },
@@ -144,3 +144,5 @@ LOGGING = {
         },
     },
 }
+
+LOGIN_REDIRECT_URL = '/budget/'

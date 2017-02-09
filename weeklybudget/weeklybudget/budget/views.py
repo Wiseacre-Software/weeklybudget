@@ -111,6 +111,7 @@ def update_payment(request):
 
         # if this is the initial viewing of the form
         if action == 'blank':
+            logger.debug('update_payment:- initial viewing')
             form = PaymentForm(request.user)
             return render_to_response(snippet, {'form': form,
                                        'categorymap': jsonpickle.encode(generate_categorymap(request.user))})
@@ -131,6 +132,7 @@ def update_payment(request):
                 if 'subcategory' in form.cleaned_data and form.cleaned_data['subcategory'] else None
 
             if form.cleaned_data['payment_id'] == '':
+                logger.debug('update_payment:- new payment')
                 # new payment
                 if Payment.objects.filter(owner=request.user) \
                         .filter(title__iexact=form.cleaned_data['title']).count() > 0:
@@ -147,7 +149,7 @@ def update_payment(request):
                     owner=request.user
                 )
                 build_payment_frequency(p, form.cleaned_data)
-                p.save()
+                # p.save()
 
             else:
                 # updated payment submission
@@ -158,6 +160,7 @@ def update_payment(request):
                     raise RuntimeError('Payment of that name already exists')
 
                 p = Payment.objects.filter(owner=request.user).get(pk=form.cleaned_data['payment_id'])
+                logger.debug('update_payment:- existing payment: %s' % p.title)
 
                 if p is None:
                     # specified payment not found
@@ -170,7 +173,7 @@ def update_payment(request):
                 p.category = category
                 p.subcategory = subcategory
                 build_payment_frequency(p, form.cleaned_data)
-                p.save()
+                # p.save()
 
             response_data['result_message'] = result_message
             response_data['result_success'] = result_success
@@ -288,6 +291,7 @@ def update_payment_date(request):
             return HttpResponse(form.errors.as_json(), content_type="application/json")
 
         p = Payment.objects.filter(owner=request.user).get(pk=form.cleaned_data['payment_id'])
+        logger.info('update_payment:- updating payment %s' % p.title)
 
         if p is None:
             # specified payment not found
@@ -299,43 +303,45 @@ def update_payment_date(request):
 
         # if only updating single instance, then add to exclusions and create one-off
         if request.POST['series_choice'] == 'this':
-            new_schedule = PaymentSchedule(
-                next_date=form.cleaned_data['next_date'],
-                frequency=PaymentScheduleFrequency.objects.get(name__exact='Once Off'),
-            )
-            new_schedule.save()
-            new_payment = Payment(
-                title=p.title + ' - ' + _date(form.cleaned_data['next_date'], 'SHORT_DATE_FORMAT'),
-                in_out=p.in_out,
-                amount=p.amount,
-                payment_type=p.payment_type,
-                category=p.category,
-                subcategory=p.subcategory,
-                schedule=new_schedule,
-                owner=request.user
-            )
-            new_payment.save()
-            new_exclusion = PaymentScheduleExclusion(
-                main_payment=p,
-                exclusion_payment=new_payment,
-                exclusion_date=parse_date(request.POST['original_date'])
-            )
-            logger.info('update_payment_date:- raw date: %s, exclusion_date: %s'
-                        % (request.POST['original_date'], str(new_exclusion.exclusion_date)))
-            new_exclusion.save()
-            response_data['form_data']['schedule_frequency'] = new_payment.schedule.frequency.name
-            response_data['form_data']['payment_id'] = new_payment.pk
-            response_data['form_data']['next_date'] = new_payment.schedule.next_date.strftime('%d/%m/%Y')
+            logger.info('update_payment:- updating single instance')
+            # new_schedule = PaymentSchedule(
+            #     next_date=form.cleaned_data['next_date'],
+            #     frequency=PaymentScheduleFrequency.objects.get(name__exact='Once Off'),
+            # )
+            # new_schedule.save()
+            # new_payment = Payment(
+            #     title=p.title + ' - ' + _date(form.cleaned_data['next_date'], 'SHORT_DATE_FORMAT'),
+            #     in_out=p.in_out,
+            #     amount=p.amount,
+            #     payment_type=p.payment_type,
+            #     category=p.category,
+            #     subcategory=p.subcategory,
+            #     schedule=new_schedule,
+            #     owner=request.user
+            # )
+            # new_payment.save()
+            # new_exclusion = PaymentScheduleExclusion(
+            #     main_payment=p,
+            #     exclusion_payment=new_payment,
+            #     exclusion_date=parse_date(request.POST['original_date'])
+            # )
+            # logger.info('update_payment_date:- raw date: %s, exclusion_date: %s'
+            #             % (request.POST['original_date'], str(new_exclusion.exclusion_date)))
+            # new_exclusion.save()
+            # response_data['form_data']['schedule_frequency'] = new_payment.schedule.frequency.name
+            # response_data['form_data']['payment_id'] = new_payment.pk
+            # response_data['form_data']['next_date'] = new_payment.schedule.next_date.strftime('%d/%m/%Y')
 
         # otherwise, update existing schedule
         else:
+            logger.info('update_payment:- existing schedule: %s' % p.schedule.id)
             build_payment_frequency(p, form.cleaned_data)
-            p.save()
-            response_data['form_data']['schedule_frequency'] = p.schedule.frequency.name
-            response_data['form_data']['payment_id'] = p.pk
-            response_data['form_data']['next_date'] = p.schedule.next_date.strftime('%d/%m/%Y')
+            # p.save()
+            # response_data['form_data']['schedule_frequency'] = p.schedule.frequency.name
+            # response_data['form_data']['payment_id'] = p.pk
+            # response_data['form_data']['next_date'] = p.schedule.next_date.strftime('%d/%m/%Y')
 
-        return HttpResponse(jsonpickle.encode(response_data), content_type="application/json")
+        # return HttpResponse(jsonpickle.encode(response_data), content_type="application/json")
 
     except Exception as e:
         error_message = '{ "Exception type": "%s", "Exception": "%s" }' % \
@@ -500,11 +506,13 @@ def generate_calendar_view(request):
         # Check to see if we're marking a calendar entry as paid or received
         if 'action' in request.POST:
             p = Payment.objects.get(pk=request.POST['payment_id'])
-            # logger.info('generate_calendar_view:- mark paid date: %s' % str(request.POST['payment_date']))
+            # logger.info('generate_calendar_view:- Payment: %s, mark paid date: %s' %
+            #             (p.title, str(request.POST['payment_date'])))
             p.schedule.next_date = parse_date(request.POST['payment_date']) + relativedelta(days=1)
             p.save()
             recalculate_next_payment(p.schedule)
-            # logger.info('generate_calendar_view:- new date: %s' % str(p.schedule.next_date))
+            # logger.info('generate_calendar_view:- Payment: %s, new date: %s' %
+            #             (p.title, str(p.schedule.next_date)))
 
         # for each payment
         payment_calendar = []
@@ -644,12 +652,12 @@ def generate_categorymap(owner):
 
 
 def build_payment_frequency(p, cleaned_data):
-    logger.info('build_payment_frequency:- entering')
-
     if p.schedule is None:
         ps = PaymentSchedule()
+        logger.info('build_payment_frequency:- new schedule')
     else:
         ps = p.schedule
+        logger.info('build_payment_frequency:- existing schedule')
 
     ps.next_date = cleaned_data['next_date']
     ps.frequency = PaymentScheduleFrequency.objects.get(pk=cleaned_data['schedule_frequency'])

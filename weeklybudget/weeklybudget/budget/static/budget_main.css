@@ -188,6 +188,25 @@ BODY {
     margin-right: 0px !important;
 }
 
+#table__payment_detail__payment_date {
+    width: 100%;
+}
+
+.td__series_choice label {
+    width: 200px;
+    text-align: left;
+}
+
+.td__monthly_style label     {
+    width: 600px;
+    text-align: left;
+    margin-top: 10px;
+}
+
+.td__series_choice {
+    text-align: right;
+}
+
 #table__payment_detail, #table__manage_categories {
     width: 100%;
 }
@@ -239,19 +258,10 @@ BODY {
     width: 78px;
 }
 
-.calendar__payment_type {
+.calendar__payment_classification {
     font-variant: small-caps;
     color: gray;
-}
-
-.calendar__category {
-    font-variant: small-caps;
-    color: gray;
-}
-
-.calendar__subcategory {
-    font-variant: small-caps;
-    color: gray;
+    font-size: smaller;
 }
 
 .calendar__payment_classification__combos {

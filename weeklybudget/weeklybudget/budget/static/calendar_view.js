@@ -42,10 +42,10 @@ function initCalendarView() {
                     render_html = '<div class="calendar__payment_classification">'
                     render_html += '<span class="calendar__payment_type">' + data + "</span>"
                     if (row.category) {
-                        render_html += ' - <span class="calendar__category">' + row.category + "</span>"
+                        render_html += ' - <br/><span class="calendar__category">' + row.category + "</span>"
                     }
                     if (row.subcategory) {
-                        render_html += ' - <span class="calendar__subcategory">' + row.subcategory + "</span>"
+                        render_html += ' - <br/><span class="calendar__subcategory">' + row.subcategory + "</span>"
                     }
                     render_html += '</div>'
                     return (render_html);
@@ -151,8 +151,8 @@ var calendarLoadComplete = function( settings, json ) {
     });
 
     // Editing functions
-    $('.calendar__payment_date').click(function(event) {
-        $('#div__calendar').addClass('ui-widget-overlay');
+    $('.calendar__payment_date').click(_.debounce(function(event) {
+        $(this).off('click');
         calendar_editing_target_element = $(this);
         calendar_editing_payment_id = $(this).closest('tr').data('payment_id');
         var payload = {
@@ -160,8 +160,9 @@ var calendarLoadComplete = function( settings, json ) {
             snippet: 'snippet__update_payment_date.html',
             payment_id: calendar_editing_payment_id
         }
+        console.info('calendar__payment_date.click:- payment_id: ' + calendar_editing_payment_id);
         calendarUpdatePaymentDetails(payload);
-    });
+    }, MILLS_TO_IGNORE_CLICKS, true));
     $('.calendar__payment_classification').click(function(event) {
         calendar_editing_target_element = $(this);
         calendar_editing_payment_id = $(this).closest('tr').data('payment_id');
@@ -193,32 +194,34 @@ var calendarUpdatePaymentDetails = function (payload) {
                 var o = JSON.parse(serverResponse_data);
                 console.warn("calendarUpdatePaymentDetails:- serverResponse_data: " + serverResponse_data);
             } catch (e) {
-                // New payment
-                if ($(calendar_editing_target_element).hasClass('button-insert-payment')) {
+                console.info('calendarUpdatePaymentDetails:- calendar_editing_target_element: ' + $(calendar_editing_target_element).prop('id'));
+                // New payment or update date/frequency
+                if ($(calendar_editing_target_element).hasClass('button-insert-payment')
+                        || $(calendar_editing_target_element).hasClass('calendar__payment_date')) {
                     new_row = '<tr class="tr__calendar_inline_edit_row">';
                     new_row += '<td colspan="' + ($(calendar_editing_target_element).closest('td').siblings('td').length + 1) + '">';
                     new_row += serverResponse_data;
                     new_row += '</td></tr>';
                     $(calendar_editing_target_element).closest('tr').after(new_row);
                     $new_row = $(calendar_editing_target_element).closest('tr').next('tr');
-                    $new_row.find("#id_next_date").val($(calendar_editing_target_element).closest('td').siblings('.calendar__payment_date').text());
-//                    $('#button__manage_categories').click(_.debounce(function (event) {
-//                        event.preventDefault;
-//                        processManageCategories();
-//                    }),MILLS_TO_IGNORE_CLICKS, true);    //todo: to be implemented in new row
+                    $new_row.find("#id_next_date").val(
+                        ($(calendar_editing_target_element).hasClass('calendar__payment_date'))
+                            ? $(calendar_editing_target_element).text()
+                            : $(calendar_editing_target_element).closest('td').siblings('.calendar__payment_date').text()
+                    );
                     $new_row.find("#id_title").focus();
 
                 // Edit date and frequency
-                } else if ($(calendar_editing_target_element).hasClass('calendar__payment_date')) {
-                    $('#calendar__overlay')
-                        .html(serverResponse_data)
-                        .show()
-                        .position({
-                            my: "left+10 top",
-                            at: "right bottom",
-                            of: calendar_editing_target_element,
-                            collision: "fit"
-                        });
+//                } else if ($(calendar_editing_target_element).hasClass('calendar__payment_date')) {
+//                    $('#calendar__overlay')
+//                        .html(serverResponse_data)
+//                        .show()
+//                        .position({
+//                            my: "left+10 top",
+//                            at: "right bottom",
+//                            of: calendar_editing_target_element,
+//                            collision: "fit"
+//                        });
 
                 // Edit Payment Type/Category/Subcategory
                 } else if ($(calendar_editing_target_element).hasClass('calendar__payment_classification')) {
@@ -284,12 +287,14 @@ var calendarUpdatePaymentDetails = function (payload) {
 var initCalendarUpdatePayment = function() {
     // init UI elements
     $('#form__payment_detail button, #form__payment_detail input:submit').button();
-    $("#id_next_date").datepicker({dateFormat: "dd/mm/yy"});
+    $("#id_next_date").datepicker({dateFormat: "dd/mm/yy", showButtonPanel: true});
     $('#input__weekly_dow_frequency').spinner({min: 1});
     $("#span__weekly_dow_day").buttonset();
     $('#input__monthly_dom_frequency').spinner({min: 1});
     $('#input__monthly_wom_frequency').spinner({min: 1});
     $('#id_annual_frequency').attr('type', 'text').spinner({min: 1});
+    $('#form__payment_detail input[name="rdo__series_choice"]').checkboxradio();
+    $('#form__payment_detail input[name="radio__monthly_style"]').checkboxradio();
 
     if ($("#id_next_date").val() === '') {
         $("#id_next_date")
@@ -308,6 +313,10 @@ var initCalendarUpdatePayment = function() {
     $('#id_annual_moy').chosen({width: "125px"});
 
     // init UI state
+    $('#form__payment_detail input[name="radio__monthly_style"]')
+        .click(function(event) {
+            $( '#form__payment_detail input[name="radio__monthly_style"]' ).checkboxradio( "refresh" );
+        });
     initialiseCombos();
     $('.select__schedule_frequency').change(initialiseCalendarFrequencyDetails);
     if ($('#id_is_exclusion').val() == 'False') {
@@ -326,8 +335,10 @@ var initCalendarUpdatePayment = function() {
             $('#tr__payment_schedule__monthly').hide();
             $('#tr__payment_schedule__weekly').hide();
             $('#tr__payment_schedule__annual').hide();
+            $('#form__payment_detail input[name="rdo__series_choice"]').val('this');
         } else {
             $('.tr__payment_details_frequency').show();
+            $('#form__payment_detail input[name="rdo__series_choice"]').val('series');
             initialiseCalendarFrequencyDetails();
         }
     });
@@ -354,7 +365,7 @@ var initCalendarUpdatePayment = function() {
         }
     });
 
-    $("#input__weekly_dow_frequency").on("spinstop", function( event, ui ) {
+    $("#input__weekly_dow_frequency").spinner('value', 1).on("spinstop", function( event, ui ) {
         if ($(this).val() == 1) {
             $('#label__weekly_dow_frequency').text('week');
         }
@@ -399,8 +410,11 @@ var initCalendarUpdatePayment = function() {
                 original_date: moment($(calendar_editing_target_element).text(), 'L').format('YYYY-MM-DD')
             });
         } else {
-            payload = $('#form__payment_detail').serialize();
+            $("#id_weekly_frequency").val($("#input__weekly_dow_frequency").spinner('value'));
+            payload = $('#form__payment_detail').serialize()
+                .replace('rdo__','');
         }
+        debugger;
         calendarUpdatePaymentInline(URL__UPDATE_PAYMENT_DATE, payload);
     });
 
@@ -491,8 +505,11 @@ var initialiseCombos = function() {
                 $('#label__monthly_wom_frequency').text('months');
             }
         }
+        $( '#form__payment_detail input[name="radio__monthly_style"]' ).checkboxradio( "refresh" );
+
     } else if ($('.select__schedule_frequency option:selected').text() == "Weekly") {
-        $("#input__weekly_dow_frequency").val($("#id_weekly_frequency").val());
+        $("#input__weekly_dow_frequency").spinner('value', $("#id_weekly_frequency").val());
+//        $("#input__weekly_dow_frequency").val($("#id_weekly_frequency").val());
         if ($("#id_weekly_frequency").val() == 1) {
             $('#label__weekly_dow_frequency').text('week');
         }
@@ -567,6 +584,7 @@ var calendarUpdatePaymentInline = function (ajax_url, payload) {
 }
 
 var processCalendarMarkAsPaidReceived = function () {
+    $(this).off('click');
     received_date = moment($(this).closest('td').siblings('.calendar__payment_date').text(), 'L').format('YYYY-MM-DD');
 	var payload = "action=update&payment_id=" + $(this).data('payment_id')
 					+ "&payment_date=" + received_date
@@ -585,7 +603,8 @@ var processCalendarMarkAsPaidReceived = function () {
 }
 
 var reloadCalendar = function() {
-	calendar_table.ajax.reload( calendarLoadComplete );
+	calendar_table.ajax.reload( );
+//	calendar_table.ajax.reload( calendarLoadComplete );
 }
 
 var processLoadCalendarServerResponse = function(serverResponse_data, textStatus_ignored, jqXHR_ignored) {
