@@ -39,7 +39,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'babeldjango',
-    'budget',
+    'budget.apps.BudgetConfig',
+    'transactions.apps.TransactionsConfig',
     'simple_history',
 )
 
@@ -140,9 +141,18 @@ LOGGING = {
     'loggers': {
         'budget.views': {
             'handlers': ['file'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'level': 'DEBUG',
+        },
+        'transactions.views': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+        'transactions.controller': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
         },
     },
 }
 
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/budget/'

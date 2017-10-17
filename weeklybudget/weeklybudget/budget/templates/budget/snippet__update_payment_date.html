@@ -7,6 +7,7 @@
     {{ form.monthly_frequency }}
     {{ form.monthly_wom }}
     {{ form.monthly_dow }}
+    {{ form.until_type }}
     <table id="table__payment_detail__payment_date">
         <tr>
             <td><label for="{{ form.next_date.id_for_label }}">Next Payment</label></td>
@@ -24,12 +25,13 @@
         </tr>
         <tr class="tr__payment_details_frequency tr__payment_detail_field_labels" style="display: none">
             <td><label for="{{ form.schedule_frequency.id_for_label }}">Payment Frequency</label></td>
+            <td class="td__spacer"></td>
         </tr>
         <tr class="tr__payment_details_frequency tr__payment_detail_fields" style="display: none">
-            <td>{{ form.schedule_frequency }}</td>
+            <td colspan="2">{{ form.schedule_frequency }}</td>
         </tr>
         <tr id="tr__payment_schedule__weekly" class="tr__payment_frequency_details" style="display: none">
-            <td colspan="4">
+            <td colspan="2">
                 Every
                 <span id="span__weekly_dow_day">
                     {{ form.weekly_dow_mon }}
@@ -51,7 +53,7 @@
             </td>
         </tr>
         <tr id="tr__payment_schedule__monthly" class="tr__payment_frequency_details" style="display: none">
-            <td colspan="6" class="td__monthly_style">
+            <td colspan="2" class="td__monthly_style">
                 <input type="radio" name="radio__monthly_style" id="radio__monthly_style_dom" value="day_of_month" />
                 <label for="radio__monthly_style_dom">
                     <span id="radio__monthly_style_dom_label">
@@ -81,10 +83,30 @@
             </td>
         </tr>
         <tr id="tr__payment_schedule__annual" class="tr__payment_frequency_details" style="display: none">
-            <td colspan="6">
+            <td colspan="2">
                     The {{ form.annual_dom }}
                     of {{ form.annual_moy }}
                     of every {{ form.annual_frequency }} <label id="label__annual_frequency">year</label><br />
+            </td>
+        </tr>
+        <tr id="tr__payment_schedule__linked" style="display: none">
+            <td>
+                <label for="{{ form.linked_to.id_for_label }}">Link to payment</label><br />
+                {{ form.linked_to }}
+            </td>
+            <td>
+                <label for="{{ form.offset.id_for_label }}">Offset by</label><br />
+                {{ form.offset  }} {{ form.offset_type }}
+            </td>
+        </tr>
+        <tr id="tr__payment_schedule__until" style="display: none">
+            <td colspan="2">
+                <input type="radio" name="radio__until" id="radio__until_forever" value="until_forever" checked="checked" />
+                <label id="label__until_forever" for="radio__until_forever"><span id="span__until_forever">Forever</span></label>
+                <input type="radio" name="radio__until"  id="radio__until_occurrences" value="until_occurrences" />
+                <label for="radio__until_occurrences">{{ form.occurrences }} times</label>
+                <input type="radio" name="radio__until"  id="radio__until_end_date" value="until_end_date" />
+                <label for="radio__until_end_date">Until {{ form.end_date }}</label>
             </td>
         </tr>
         <tr class="tr__payment_detail_field_labels">
@@ -92,7 +114,7 @@
             <td style="text-align: right">
                 <button id="button__update_payment_date_revert_to_schedule">Revert</button>
                 <button id="button__update_payment_date_save_changes">Update</button>
-                <button id="button__update_payment_date_cancel">Cancel</button>
+                <button id="button__update_payment_date_cancel" class="payment_edit_cancel">Cancel</button>
             </td>
         </tr>
     </table>
@@ -103,5 +125,6 @@
 </form>
 
 <script language="javascript">
-    initCalendarUpdatePayment();
+    initUpdateSchedule();
+    initUpdatePaymentDate();
 </script>

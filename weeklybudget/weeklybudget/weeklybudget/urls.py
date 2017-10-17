@@ -5,4 +5,5 @@ urlpatterns = [
     url('^', include('django.contrib.auth.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^budget/', include('budget.urls', namespace="budget")),
+    url(r'^transactions/', include('transactions.urls', namespace="transactions")),
 ]

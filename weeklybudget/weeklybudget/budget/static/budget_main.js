@@ -1,4 +1,6 @@
 // Main javascript for budget pages
+var categorymap;
+var user_message_text;
 
 $.widget( "ui.checkboxradio", $.ui.checkboxradio, {
     refresh: function() {
@@ -16,3 +18,14 @@ $.widget( "ui.checkboxradio", $.ui.checkboxradio, {
 		}
     }
 });
+
+var refresh_calendar_search_terms = function (search_terms_str) {
+    calendar_search_terms = search_terms_str;
+    $('#txt__calendar_search').autocomplete({ source: calendar_search_terms });
+}
+
+// Autonumeric config
+//const autoNumericOptions = {
+//    isCancellable : false
+//};
+//var currency_ = value => currency(value, { formatWithSymbol: true });

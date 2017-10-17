@@ -1,34 +1,136 @@
-<div id="div__accounts">
-    <table id="table__accounts">
+<div id="div__accounts" class="dataTables_wrapper">
+    <div class="fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr">
+        <table width="100%">
+            <tr>
+                <td width="85%">Debit Accounts</td>
+                <td width="15%" align="right">
+                    <button id="btn__new_debit_account">New Debit Account</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table id="table__debit_accounts" class="table__bank_account row-border">
         <thead>
             <tr>
+                <th></th>
+                <th>Display Order</th>
                 <th>Title</th>
                 <th>Balance</th>
+                <th>Min. Balance</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for bank_account in bank_accounts %}
+                {% if bank_account.account_type == 'debit' %}
             <tr data-bank_account_id="{{ bank_account.pk }}"
                 data-bank_account_title="{{ bank_account.title }}"
-                data-bank_account_balance="{{ bank_account.current_balance }}">
-                <td class="td__bank_account_title">{{ bank_account.title }}</td>
+                data-bank_account_balance="{{ bank_account.current_balance }}"
+                data-bank_account_type="{{ bank_account.account_type }}"
+                data-display_order="{{ bank_account.display_order }}">
+                <td><span class="grippy"></span></td>
+                <td>{{ bank_account.display_order }}</td>
+                <td class="td__bank_account_title nowrap">{{ bank_account.title }}</td>
                 <td class="td__bank_account_balance">{{ bank_account.current_balance }}</td>
+                <td class="td__bank_account_balance_min"></td>
+                <td><button class='button__delete_account'>Delete Account</button></td>
             </tr>
+                {% endif %}
             {% endfor %}
         </tbody>
-        <tfoot>
-            <tr>
-                <td style="text-align:right">Total:</td>
-                <td class="td__bank_account_total_balance"></td>
-            </tr>
-        </tfoot>
     </table>
-    <div>
-        <span id="span_add_account_form"></span>
-        <a id="href__add_account">+ Add Account</a>
+    <br />
+    <br />
+
+    <div class="fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr">
+        <table width="100%">
+            <tr>
+                <td width="85%">Credit Accounts</td>
+                <td width="15%" align="right">
+                    <button id="btn__new_credit_account">New Credit Account</button>
+                </td>
+            </tr>
+        </table>
     </div>
+    <table id="table__credit_accounts" class="table__bank_account row-border">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Display Order</th>
+                <th>Title</th>
+                <th>Balance</th>
+                <th>Min. Balance</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bank_account in bank_accounts %}
+                {% if bank_account.account_type == 'credit' %}
+            <tr data-bank_account_id="{{ bank_account.pk }}"
+                data-bank_account_title="{{ bank_account.title }}"
+                data-bank_account_balance="{{ bank_account.current_balance }}"
+                data-bank_account_type="{{ bank_account.account_type }}"
+                data-display_order="{{ bank_account.display_order }}">
+                <td><span class="grippy"></span></td>
+                <td>{{ bank_account.display_order }}</td>
+                <td class="td__bank_account_title nowrap">{{ bank_account.title }}</td>
+                <td class="td__bank_account_balance">{{ bank_account.current_balance }}</td>
+                <td class="td__bank_account_balance_min"></td>
+                <td><button class='button__delete_account'>Delete Account</button></td>
+            </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+    <br />
+    <br />
+
+    <div class="fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr">
+        <table width="100%">
+            <tr>
+                <td width="85%">Virtual Accounts</td>
+                <td width="15%" align="right">
+                    <button id="btn__new_virtual_account">New Virtual Account</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <table id="table__virtual_accounts" class="table__bank_account row-border">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Display Order</th>
+                <th>Title</th>
+                <th>Balance</th>
+                <th>Min. Balance</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bank_account in bank_accounts %}
+                {% if bank_account.account_type == 'virtual' %}
+            <tr data-bank_account_id="{{ bank_account.pk }}"
+                data-bank_account_title="{{ bank_account.title }}"
+                data-bank_account_balance="{{ bank_account.current_balance }}"
+                data-bank_account_type="{{ bank_account.account_type }}"
+                data-display_order="{{ bank_account.display_order }}">
+                <td><span class="grippy"></span></td>
+                <td>{{ bank_account.display_order }}</td>
+                <td class="td__bank_account_title nowrap">{{ bank_account.title }}</td>
+                <td class="td__bank_account_balance">{{ bank_account.current_balance }}</td>
+                <td class="td__bank_account_balance_min"></td>
+                <td><button class='button__delete_account'>Delete Account</button></td>
+            </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"></div>
 </div>
 
 <script>
     initBankAccountView();
 </script>
+

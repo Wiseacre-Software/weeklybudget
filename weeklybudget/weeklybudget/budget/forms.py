@@ -26,7 +26,15 @@ class PaymentForm(forms.Form):
         widget=forms.DateInput(format='%d/%m/%Y'),
         input_formats=['%d/%m/%Y', '%d/%m/%y'],
     )
+    account = forms.ChoiceField(required=True)
     is_exclusion = forms.CharField(widget=forms.HiddenInput(), required=False)
+    until_type = forms.CharField(widget=forms.HiddenInput(), required=True) # 'forever', 'occurrences', 'end_date'
+    occurrences = forms.CharField(required=False)
+    end_date = forms.DateField(
+        widget=forms.DateInput(format='%d/%m/%Y'),
+        input_formats=['%d/%m/%Y', '%d/%m/%y'],
+        required=False,
+    )
 
     # Weekly fields
     weekly_dow_mon = forms.BooleanField(required=False)
@@ -61,16 +69,34 @@ class PaymentForm(forms.Form):
     )
     annual_frequency = forms.IntegerField(min_value=0, required=False)
 
+    # Linking fields
+    linked_to = forms.ChoiceField(required=False)
+    offset = forms.CharField(initial=0, required=False)
+    offset_type = forms.ChoiceField(
+        choices=(
+            ('days', 'Days'),
+            ('weeks', 'Weeks'),
+            ('months', 'Months'),
+            ('years', 'Years'),
+        ),
+        initial='days',
+        required=False,
+    )
+
     def __init__(self, user, *args, **kwargs):
         super(PaymentForm, self).__init__(*args, **kwargs)
         self.fields['payment_type'].choices = \
-            ([(0, '')] + [(pt.id, pt.name) for pt in PaymentType.objects.filter(owner=user).order_by('name')])
+            ([(0, '')] + [(pt.id, pt.name) for pt in PaymentType.objects.filter(owner=user, active=True).order_by('name')])
         self.fields['category'].choices = \
-            ([(0, '')] + [(c.id, c.name) for c in Category.objects.filter(owner=user).order_by('name')])
+            ([(0, '')] + [(c.id, c.name) for c in Category.objects.filter(owner=user, active=True).order_by('name')])
         self.fields['subcategory'].choices = \
-            ([(0, '')] + [(sc.id, sc.name) for sc in SubCategory.objects.filter(owner=user).order_by('name')])
+            ([(0, '')] + [(sc.id, sc.name) for sc in SubCategory.objects.filter(owner=user, active=True).order_by('name')])
         self.fields['schedule_frequency'].choices = \
-            ([(sf.id, sf.name) for sf in PaymentScheduleFrequency.objects.order_by('sort_order')])
+            ([(sf.id, sf.name) for sf in PaymentScheduleFrequency.objects.filter(active=True).order_by('sort_order')])
+        self.fields['account'].choices = \
+            ([(a.id, a.title) for a in BankAccount.objects.filter(owner=user, active=True).order_by('title')])
+        self.fields['linked_to'].choices = \
+            ([(p.id, p.title) for p in Payment.objects.filter(owner=user, active=True).order_by('title')])
 
     def clean_amount(self):
         data = re.sub(r'[^0-9.]', r'', self.cleaned_data['amount'])
@@ -85,6 +111,13 @@ class PaymentDateForm(forms.Form):
         widget=forms.DateInput(format='%d/%m/%Y'),
         input_formats=['%d/%m/%Y', '%d/%m/%y'],
     )
+    until_type = forms.CharField(widget=forms.HiddenInput(), required=False) # 'forever', 'occurrences', 'end_date'
+    occurrences = forms.CharField(required=False)
+    end_date = forms.DateField(
+        widget=forms.DateInput(format='%d/%m/%Y'),
+        input_formats=['%d/%m/%Y', '%d/%m/%y'],
+        required=False,
+    )
 
     # Weekly fields
     weekly_dow_mon = forms.BooleanField(required=False)
@@ -119,10 +152,26 @@ class PaymentDateForm(forms.Form):
     )
     annual_frequency = forms.IntegerField(min_value=0, required=False)
 
-    def __init__(self, *args, **kwargs):
+    # Linking fields
+    linked_to = forms.ChoiceField(required=False)
+    offset = forms.CharField(initial=0, required=False)
+    offset_type = forms.ChoiceField(
+        choices=(
+            ('days', 'Days'),
+            ('weeks', 'Weeks'),
+            ('months', 'Months'),
+            ('years', 'Years'),
+        ),
+        initial='days',
+        required=False,
+    )
+
+    def __init__(self, user, *args, **kwargs):
         super(PaymentDateForm, self).__init__(*args, **kwargs)
         self.fields['schedule_frequency'].choices = \
             ([(sf.id, sf.name) for sf in PaymentScheduleFrequency.objects.order_by('sort_order')])
+        self.fields['linked_to'].choices = \
+            ([(p.id, p.title) for p in Payment.objects.filter(owner=user, active=True).order_by('title')])
         # p = Payment.objects.filter(pk=self.payment_id)
 
 
@@ -135,31 +184,38 @@ class PaymentClassificationForm(forms.Form):
     def __init__(self, user, *args, **kwargs):
         super(PaymentClassificationForm, self).__init__(*args, **kwargs)
         self.fields['payment_type'].choices = \
-            ([(0, '')] + [(pt.id, pt.name) for pt in PaymentType.objects.filter(owner=user).order_by('name')])
+            ([(0, '')] + [(pt.id, pt.name) for pt in PaymentType.objects.filter(owner=user, active=True).order_by('name')])
         self.fields['category'].choices = \
-            ([(0, '')] + [(c.id, c.name) for c in Category.objects.filter(owner=user).order_by('name')])
+            ([(0, '')] + [(c.id, c.name) for c in Category.objects.filter(owner=user, active=True).order_by('name')])
         self.fields['subcategory'].choices = \
-            ([(0, '')] + [(sc.id, sc.name) for sc in SubCategory.objects.filter(owner=user).order_by('name')])
+            ([(0, '')] + [(sc.id, sc.name) for sc in SubCategory.objects.filter(owner=user, active=True).order_by('name')])
+
 
 class CategoriesForm(forms.Form):
-    payment_type = forms.MultipleChoiceField(
+    manage_payment_type = forms.MultipleChoiceField(
         widget=forms.SelectMultiple(attrs={'size': '10', 'class': 'mc_payment_type'})
     )
-    category = forms.MultipleChoiceField(
+    selected_payment_type = forms.CharField(widget=forms.HiddenInput(), required=False)
+    updated_payment_type = forms.CharField(widget=forms.HiddenInput(), required=False)
+    manage_category = forms.MultipleChoiceField(
         widget=forms.SelectMultiple(attrs={'size': '10', 'class': 'mc_category'})
     )
-    subcategory = forms.MultipleChoiceField(
+    selected_category = forms.CharField(widget=forms.HiddenInput(), required=False)
+    updated_category = forms.CharField(widget=forms.HiddenInput(), required=False)
+    manage_subcategory = forms.MultipleChoiceField(
         widget=forms.SelectMultiple(attrs={'size': '10', 'class': 'mc_subcategory'})
     )
+    selected_subcategory = forms.CharField(widget=forms.HiddenInput(), required=False)
+    updated_subcategory = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, user, *args, **kwargs):
         super(CategoriesForm, self).__init__(*args, **kwargs)
-        self.fields['payment_type'].choices = \
-            ([(pt.id, pt.name) for pt in PaymentType.objects.filter(owner=user).order_by('name')])
-        self.fields['category'].choices = \
-            ([(c.id, c.name) for c in Category.objects.filter(owner=user).order_by('name')])
-        self.fields['subcategory'].choices = \
-            ([(sc.id, sc.name) for sc in SubCategory.objects.filter(owner=user).order_by('name')])
+        self.fields['manage_payment_type'].choices = \
+            ([(pt.id, pt.name) for pt in PaymentType.objects.filter(owner=user, active=True).order_by('name')])
+        self.fields['manage_category'].choices = \
+            ([(c.id, c.name) for c in Category.objects.filter(owner=user, active=True).order_by('name')])
+        self.fields['manage_subcategory'].choices = \
+            ([(sc.id, sc.name) for sc in SubCategory.objects.filter(owner=user, active=True).order_by('name')])
 
 
 class AccountForm(forms.Form):
@@ -168,3 +224,11 @@ class AccountForm(forms.Form):
                             widget=forms.TextInput(attrs={'class': 'bank_account_title'}))
     current_balance = forms.CharField(label='Balance', max_length=100,
                                       widget=forms.TextInput(attrs={'class': 'bank_account_balance money'}))
+    account_type = forms.ChoiceField(
+        choices=(
+            ('debit', 'Debit'),
+            ('credit', 'Credit'),
+            ('virtual', 'Virtual'),
+        ),
+        initial='credit'
+    )

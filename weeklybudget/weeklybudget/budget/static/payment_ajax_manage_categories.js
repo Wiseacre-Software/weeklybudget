@@ -1,35 +1,115 @@
 //THIS FILE MUST BE IMPORTED BEFORE THE "main" FILE.
 
 var processManageCategories = function(payload)  {
-    console.info('processManageCategories: entering, payload: ' + payload);
-
     var jqxhr = $.ajax({
             method: "POST",
             url: URL__MANAGE_CATEGORIES,
             data: payload
         })
-        .done(function(serverResponse_data) {
-            try {
-                var o = JSON.parse(serverResponse_data);
-                if (o.Exception) {
-                    showErrorMessage(o.Exception);
-                }
-            } catch (e) {
-                // update was successful and new html for updated combos received
-                $edit_row = $('.tr__calendar_inline_edit_row');
-                new_row = '<td colspan="' + ($edit_row.prev('tr').children('td').length) + '">';
-                new_row += serverResponse_data;
-                new_row += '</td>';
-                if ($('.tr__calendar_inline_manage_categories').length == 0) {
-                    $edit_row.after('<tr class="tr__calendar_inline_manage_categories">' + new_row + '</tr>');
-                } else {
-                    $('.tr__calendar_inline_manage_categories').html(new_row);
-                }
+        .done(function(server_response) {
+            if (server_response['result_success'] == 'fail') {
+                user_message('fail', server_response['result_message']);
+                return false;
+            }
 
-                // Update combos in Update Payment form
-                updatePaymentFormCategoryCombos('payment_type');
-                updatePaymentFormCategoryCombos('category');
-                updatePaymentFormCategoryCombos('subcategory');
+            // update was successful and new html for updated combos received
+            var selected_payment_type;
+            var selected_category;
+            var selected_subcategory;
+            $edit_row = $('.tr__calendar_inline_edit_row');
+            new_row = '<td colspan="' + ($edit_row.prev('tr').children('td').length) + '">';
+            new_row += server_response;
+            new_row += '</td>';
+            if ($('.tr__calendar_inline_manage_categories').length == 0) {
+                $edit_row.after('<tr class="tr__calendar_inline_manage_categories">' + new_row + '</tr>');
+            } else {
+                $('.tr__calendar_inline_manage_categories').html(new_row);
+            }
+            $('#div__calendar').animate({
+                scrollTop: ($('#div__calendar').scrollTop()
+                            + $('.tr__category_update').offset().top
+                            + $('.tr__category_update').height()
+                            - $('#div__calendar').offset().top
+                            - $('#div__calendar').height()) + 'px'
+            }, 'fast');
+
+            // initialise UI
+            $('.button__manage_categories_payment_types_delete')
+                .button( {
+                    icons: { primary: 'ui-icon-trash', secondary: null },
+                    text: false
+                })
+                .click(_.debounce(function() { deleteCategory($(this), 'payment_type'); }, MILLS_TO_IGNORE_CLICKS, true));
+            $('.button__manage_categories_categories_delete')
+                .button( {
+                    icons: { primary: 'ui-icon-trash', secondary: null },
+                    text: false
+                })
+                .click(_.debounce(function() { deleteCategory($(this), 'category'); }, MILLS_TO_IGNORE_CLICKS, true));
+             $('.button__manage_categories_subcategories_delete')
+                .button( {
+                    icons: { primary: 'ui-icon-trash', secondary: null },
+                    text: false
+                })
+                .click(_.debounce(function() { deleteCategory($(this), 'subcategory'); }, MILLS_TO_IGNORE_CLICKS, true));
+
+            // default in categories
+            $('#id__manage_categories_payment_types tr').each( function () {
+                if ($(this).children(':first').text() == $('#id_selected_payment_type').val()) {
+                    $(this).children('td').addClass('highlighted');
+                    selected_payment_type = $('#id_selected_payment_type').val();
+                } else {
+                    $(this).children('td').removeClass('highlighted');
+                }
+                if ($(this).children(':first').text() == $('#id_updated_payment_type').val()) {
+                    selectCategories($(this), 'payment_type');
+                    selected_payment_type = $('#id_updated_payment_type').val();
+                }
+            });
+            $('#id__manage_categories_categories tr').each( function () {
+                if ($(this).children(':first').text() == $('#id_selected_category').val()) {
+                   $(this).children('td').addClass('highlighted');
+                   selected_category = $('#id_selected_category').val();
+                } else {
+                    $(this).children('td').removeClass('highlighted');
+                }
+                if ($(this).children(':first').text() == $('#id_updated_category').val()) {
+                   selectCategories($(this), 'category');
+                   selected_category = $('#id_updated_category').val();
+                }
+            });
+            $('#id__manage_categories_subcategories tr').each( function () {
+                if ($(this).children(':first').text() == $('#id_selected_subcategory').val()) {
+                    $(this).children('td').addClass('highlighted');
+                    selected_subcategory = $('#id_selected_subcategory').val();
+                } else {
+                    $(this).children('td').removeClass('highlighted');
+                }
+                if ($(this).children(':first').text() == $('#id_updated_subcategory').val()) {
+                    selectCategories($(this), 'subcategory');
+                    selected_subcategory = $('#id_updated_subcategory').val();
+                }
+            });
+
+            // Update combos in Update Payment form
+            if ($('#form__payment_detail').length) {
+                updatePaymentFormCategoryCombos('payment_type', selected_payment_type);
+                updatePaymentFormCategoryCombos('category', selected_category);
+                updatePaymentFormCategoryCombos('subcategory', selected_subcategory);
+            }
+
+            // Update payments in calendar
+            for (var i = 0; i < updated_payments.length; i++) {
+                $('tr[data-payment_id="' + updated_payments[i].payment_id + '"]')
+                        .find('div.calendar__payment_classification').replaceWith( function() {
+                    var row = new Object();
+                    row.payment_type_id = updated_payments[i].payment_type_id;
+                    row.category_id = updated_payments[i].category_id;
+                    row.category = updated_payments[i].category;
+                    row.subcategory_id = updated_payments[i].subcategory_id;
+                    row.subcategory = updated_payments[i].subcategory;
+                    return render_category( updated_payments[i].payment_type, '', row);
+                });
             }
         });
 }
@@ -55,137 +135,153 @@ function initManageCategories(categorymap) {
             ignore: 'select'    // don't validate the lists themselves
         });
 
-    // jquery-ui
-//    $('#table__manage_categories select, #table__manage_categories label, #table__manage_categories option').addClass('ui-widget');
-    $('#table__manage_categories button').button();
-
     // hook up events
-    $('.mc_payment_type').change(function () {
-//        hideUpdateFields();
-        $('.mc_category option:selected').each(function() { $(this).prop('selected', false) });
-        $('.mc_subcategory option:selected').each(function() { $(this).prop('selected', false) });
-        for (i = 0; i < categorymap.length; i++) {
-            $(this).find('option:selected').each(function() {
-                if (categorymap[i][0] == $(this).val()) {
-                    $('.mc_category option[value="' + categorymap[i][1] + '"]').prop('selected', true);
-                    $('.mc_subcategory option[value="' + categorymap[i][2] + '"]').prop('selected', true);
-                }
-            })
+    $('#id__manage_categories_payment_types tr td:first-child').click(_.debounce(function() { selectCategories($(this).parent(), 'payment_type') }, MILLS_TO_IGNORE_CLICKS, true));
+    $('#id__manage_categories_categories tr td:first-child').click(_.debounce(function() { selectCategories($(this).parent(), 'category') }, MILLS_TO_IGNORE_CLICKS, true));
+    $('#id__manage_categories_subcategories tr td:first-child').click(_.debounce(function() { selectCategories($(this).parent(), 'subcategory') }, MILLS_TO_IGNORE_CLICKS, true));
+
+    $('#button__payment_type_add').button( {
+            icons: { primary: 'ui-icon-plus', secondary: null },
+            text: false
+        })
+        .click(_.debounce(function() {
+            var pt_no = 1;
+            var pt_name = 'Payment Type #' + pt_no;
+            while ($('#id__manage_categories_payment_types td:contains("' + pt_name + '")').length > 0) {
+                pt_no += 1;
+            }
+            processManageCategories( { 'new_payment_type' : pt_name } );
+        }, MILLS_TO_IGNORE_CLICKS, true));
+    $('#button__category_add').button( {
+            icons: { primary: 'ui-icon-plus', secondary: null },
+            text: false
+        })
+        .click(_.debounce(function(){
+            if ($('#id__manage_categories_payment_types td.selected').parent().length != 1) {
+                user_message('fail', 'Create Category failed. Please select a Payment Type for the new Category');
+                return false;
+            }
+            var cat_no = 1;
+            var cat_name = 'Category #' + cat_no;
+            while ($('#id__manage_categories_categories td:contains("' + cat_name + '")').length > 0) {
+                cat_no += 1;
+            }
+            processManageCategories( { 'payment_type' : $('#id__manage_categories_payment_types td.selected').parent().data('payment_type_id'),
+                'new_category' : cat_name } );
+        }, MILLS_TO_IGNORE_CLICKS, true));
+    $('#button__subcategory_add').button( {
+            icons: { primary: 'ui-icon-plus', secondary: null },
+            text: false
+        })
+        .click(_.debounce(function(){
+            if ($('#id__manage_categories_categories td.selected').parent().length != 1) {
+                user_message('fail', 'Create Subcategory failed. Please select a Category for the new Subcategory');
+                return false;
+            }
+            var subcat_no = 1;
+            var subcat_name = 'Subcategory #' + subcat_no;
+            while ($('#id__manage_categories_subcategories td:contains("' + subcat_name + '")').length > 0) {
+                subcat_no += 1;
+            }
+            processManageCategories( { 'category' : $('#id__manage_categories_categories td.selected').parent().data('category_id'),
+                'new_subcategory' : subcat_name } );
+        }, MILLS_TO_IGNORE_CLICKS, true));
+    $('#button__payment_type_update').button( {
+            icons: { primary: 'ui-icon-check', secondary: null },
+            text: false
+        })
+        .click(_.debounce(function(){
+            if ($('#id__manage_categories_payment_types td')
+                    .filter(function() { return $(this).text() === $('#txt__payment_type_update').val(); })
+                    .length != 0) {
+                user_message('fail', 'Update Payment Type failed. Payment Type "' + $('#txt__payment_type_update').val() +'" already exists.');
+                $('#txt__payment_type_update').select();
+                return false;
+            }
+            processManageCategories( {
+                'edit_payment_type_id' : $('#id__manage_categories_payment_types td.selected').parent().data('payment_type_id'),
+                'edit_payment_type_name' : $('#txt__payment_type_update').val()
+            } );
+        }, MILLS_TO_IGNORE_CLICKS, true));
+    $('#button__category_update').button( {
+            icons: { primary: 'ui-icon-check', secondary: null },
+            text: false
+        })
+        .click(_.debounce(function(){
+            if ($('#id__manage_categories_categories td')
+                    .filter(function() { return $(this).text() === $('#txt__category_update').val(); })
+                    .length != 0) {
+                user_message('fail', 'Update Category failed. Category "' + $('#txt__category_update').val() +'" already exists.');
+                $('#txt__category_update').select();
+                return false;
+            }
+            processManageCategories( {
+                'edit_category_id' : $('#id__manage_categories_categories td.selected').parent().data('category_id'),
+                'edit_category_name' : $('#txt__category_update').val()
+            } );
+        }, MILLS_TO_IGNORE_CLICKS, true));
+    $('#button__subcategory_update').button( {
+            icons: { primary: 'ui-icon-check', secondary: null },
+            text: false
+        })
+        .click(_.debounce(function(){
+            if ($('#id__manage_categories_subcategories td')
+                    .filter(function() { return $(this).text() === $('#txt__subcategory_update').val(); })
+                    .length != 0) {
+                user_message('fail', 'Update Subcategory failed. Subcategory "' + $('#txt__subcategory_update').val() +'" already exists.');
+                $('#txt__subcategory_update').select();
+                return false;
+            }
+            processManageCategories( {
+                'edit_subcategory_id' : $('#id__manage_categories_subcategories td.selected').parent().data('subcategory_id'),
+                'edit_subcategory_name' : $('#txt__subcategory_update').val()
+            } );
+        }, MILLS_TO_IGNORE_CLICKS, true));
+    $('#button__payment_type_cancel').button( {
+            icons: { primary: 'ui-icon-close', secondary: null },
+            text: false
+        })
+        .click(_.debounce(function() {
+            $('#txt__payment_type_update').val('').select();
+        }, MILLS_TO_IGNORE_CLICKS, true));
+    $('#button__category_cancel').button( {
+            icons: { primary: 'ui-icon-close', secondary: null },
+            text: false
+        })
+        .click(_.debounce(function() {
+            $('#txt__category_update').val('').select();
+        }, MILLS_TO_IGNORE_CLICKS, true));
+    $('#button__subcategory_cancel').button( {
+            icons: { primary: 'ui-icon-close', secondary: null },
+            text: false
+        })
+        .click(_.debounce(function() {
+            $('#txt__subcategory_update').val('').select();
+        }, MILLS_TO_IGNORE_CLICKS, true));
+//    $('#button__delete_payment_type').click(_.debounce(function(){updateCategoryValues.call(this)},MILLS_TO_IGNORE_CLICKS, true));
+//    $('#button__delete_category').click(_.debounce(function(){updateCategoryValues.call(this)},MILLS_TO_IGNORE_CLICKS, true));
+//    $('#button__delete_subcategory').click(_.debounce(function(){updateCategoryValues.call(this)},MILLS_TO_IGNORE_CLICKS, true));
+
+    $('#button__manage_categories_done').button().click(_.debounce(manageCategoriesDone,MILLS_TO_IGNORE_CLICKS, true));
+
+    $('.tr__category_update input').keyup(function(event) {
+        if (event.keyCode == 13) {
+            $(this).siblings('.button__update').click();
+            event.preventDefault();
         }
-    });
-    $('.mc_payment_type').dblclick(function(){showUpdateFields('payment_type',true)});
-
-    $('.mc_category').change(function () {
-//        hideUpdateFields();
-        // select valid payment_type and subcategory for selected category
-        $('.mc_payment_type option:selected').each(function() { $(this).prop('selected', false) });
-        $('.mc_subcategory option:selected').each(function() { $(this).prop('selected', false) });
-        for (i = 0; i < categorymap.length; i++) {
-            $('.mc_category').find('option:selected').each(function() {
-                if (categorymap[i][1] == $(this).val()) {
-                    $('.mc_payment_type option[value="' + categorymap[i][0] + '"]').prop('selected', true);
-                    $('.mc_subcategory option[value="' + categorymap[i][2] + '"]').prop('selected', true);
-                }
-            })
-        }
-    })
-    $('.mc_category').dblclick(function(){showUpdateFields('category',true)});
-
-    $('.mc_subcategory').change(function () {
-//        hideUpdateFields();
-        // select valid payment_type and category for selected category
-        $('.mc_payment_type option:selected').each(function() { $(this).prop('selected', false) });
-        $('.mc_category option:selected').each(function() { $(this).prop('selected', false) });
-        for (i = 0; i < categorymap.length; i++) {
-            $('.mc_subcategory').find('option:selected').each(function() {
-                if (categorymap[i][2] == $(this).val()) {
-                    $('.mc_payment_type option[value="' + categorymap[i][0] + '"]').prop('selected', true);
-                    $('.mc_category option[value="' + categorymap[i][1] + '"]').prop('selected', true);
-                }
-            })
-        }
-    })
-    $('.mc_subcategory option').dblclick(function(){showUpdateFields('subcategory',true)});
-
-    $('#button__new_payment_type').click(_.debounce(function(){showUpdateFields('payment_type',false)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__new_category').click(_.debounce(function(){showUpdateFields('category',false)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__new_subcategory').click(_.debounce(function(){showUpdateFields('subcategory',false)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__edit_payment_type').click(_.debounce(function(){showUpdateFields('payment_type',true)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__edit_category').click(_.debounce(function(){showUpdateFields('category',true)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__edit_subcategory').click(_.debounce(function(){showUpdateFields('subcategory',true)},MILLS_TO_IGNORE_CLICKS, true));
-
-    $('#button__payment_type_update').click(_.debounce(function(){updateCategoryValues.call(this)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__category_update').click(_.debounce(function(){updateCategoryValues.call(this)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__subcategory_update').click(_.debounce(function(){updateCategoryValues.call(this)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__delete_payment_type').click(_.debounce(function(){updateCategoryValues.call(this)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__delete_category').click(_.debounce(function(){updateCategoryValues.call(this)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__delete_subcategory').click(_.debounce(function(){updateCategoryValues.call(this)},MILLS_TO_IGNORE_CLICKS, true));
-
-    $('#button__manage_categories_done').click(_.debounce(manageCategoriesDone,MILLS_TO_IGNORE_CLICKS, true));
-
-    $('.tr__category_update input').keypress(function(event) {
-        if (event.which == 13) {
-            $(this).siblings('button')[0].click();
+        if (event.keyCode == 27) {
+            $(this).siblings('.button__cancel').click();
             event.preventDefault();
         }
     });
-
-    // initialise UI
-//    $('#id_payment_type option:first-child').attr("selected", "selected").change();
-}
-
-function hideUpdateFields() {
-    $('#txt__payment_type_update').val('').hide();
-    $('#button__payment_type_update').hide();
-    $('#txt__category_update').val('').hide();
-    $('#button__category_update').hide();
-    $('#txt__subcategory_update').val('').hide();
-    $('#button__subcategory_update').hide();
-}
-
-function showUpdateFields(which_field, is_edit) {
-//    hideUpdateFields();
-    if (which_field == 'payment_type') {
-        $('#txt__payment_type_update').show().focus();
-        $('#button__payment_type_update').show();
-        if (is_edit) {
-            var edit_val = payment_types[$('.mc_payment_type').find('option:selected').val()];
-            $('#button__payment_type_update').button('option', 'label', 'Update');
-            $('#txt__payment_type_update').val(edit_val);
-            $('#txt__payment_type_update').select();
-        }
-    }
-    else if (which_field == 'category') {
-        $('#txt__category_update').show().focus();
-        $('#button__category_update').show();
-        if (is_edit) {
-            var edit_val = categories[$('.mc_category').find('option:selected').val()];
-            $('#button__category_update').button('option', 'label', 'Update');
-            $('#txt__category_update').val(edit_val);
-            $('#txt__category_update').select();
-        }
-    }
-    else {
-        $('#txt__subcategory_update').show().focus();
-        $('#button__subcategory_update').show();
-        if (is_edit) {
-            var edit_val = subcategories[$('.mc_subcategory').find('option:selected').val()];
-            $('#button__subcategory_update').button('option', 'label', 'Update');
-            $('#txt__subcategory_update').val(edit_val);
-            $('#txt__subcategory_update').select();
-        }
-    }
 }
 
 function updateCategoryValues() {
     var payload;
-
-//    console.info("updateCategoryValues:- id: " + $(this).attr('id') + ", text: " + $(this).text());
-
-    if(!$('#form__manage_categories').validate().valid()) {
-        console.info("updateCategoryValues:- form invalid");
-        return;
-    }
+//    if(!$('#form__manage_categories').validate().valid()) {
+//        console.info("updateCategoryValues:- form invalid");
+//        return;
+//    }
 
     switch($(this).attr('id')) {
         case 'button__payment_type_update':
@@ -193,7 +289,7 @@ function updateCategoryValues() {
                 payload = { 'new_payment_type' : $('#txt__payment_type_update').val() }
             } else {
                 payload = {
-                    'edit_payment_type_id' : $('.mc_payment_type').find('option:selected').val(),
+                    'edit_payment_type_id' : $('#id__manage_categories_payment_type td.selected').data('payment_type_id'),
                     'edit_payment_type_name' : $('#txt__payment_type_update').val()
                 }
             }
@@ -252,178 +348,161 @@ function updateCategoryValues() {
 };
 
 var showErrorMessage = function(error_message) {
-    $('#div__manage_categories__error_messages').show();
-    $('#span__manage_categories__error_messages').text(error_message);
+    user_message('fail', error_message);
 }
 
-var updatePaymentFormCategoryCombos = function(which_combo) {
+var updatePaymentFormCategoryCombos = function(which_combo, selection_text) {
+    console.debug('updatePaymentFormCategoryCombos:- which_combo: "' + which_combo + '", selection_text: "' + selection_text + '"');
     var select__which_combo = $('#form__payment_detail #id_' + which_combo);
-    var curr_selection = select__which_combo.val();
+    var curr_selection;
+    var which_combos;
+    switch(which_combo) {
+        case 'payment_type':
+            which_combos = 'payment_types';
+            break;
+        case 'category':
+            which_combos = 'categories';
+            break;
+        case 'subcategory':
+            which_combos = 'subcategories';
+            break;
+    }
+    if (typeof selection_text === 'undefined' || selection_text === 'None' || selection_text === '') {
+        curr_selection = select__which_combo.val();
+    } else {
+        if ($('#id__manage_categories_' + which_combos +' td.selected').parent().length === 1) {
+            curr_selection = $('#id__manage_categories_' + which_combos +' td.selected').parent().data(which_combo + '_id');
+        } else if ($('#id__manage_categories_' + which_combos +' td.highlighted').parent().length === 1) {
+            curr_selection = $('#id__manage_categories_' + which_combos +' td.highlighted').parent().data(which_combo + '_id');
+        } else {
+            console.debug('updatePaymentFormCategoryCombos:- Please select a single ' + which_combo + ', selection_text: "' + selection_text + '" (' + typeof selection_text + ')');
+            console.debug('updatePaymentFormCategoryCombos:- highlighted parents: ' + $('#id__manage_categories_' + which_combos +' td.highlighted').parent().length);
+            user_message('fail', 'Please select a single ' + which_combo + ', selection_text: "' + selection_text + '" (' + typeof selection_text + ')');
+            return false;
+        }
+    }
     select__which_combo.empty();
-    $('#form__manage_categories #id_' + which_combo + ' option').each( function() {
+    $('#id__manage_categories_' + which_combos +' tr td:first-child').each( function() {
         select__which_combo.append($("<option></option>")
-            .val($(this).val())
-            .html($(this).html()));
-    })
+            .val($(this).parent().data(which_combo + '_id'))
+            .text($(this).text()));
+    });
     select__which_combo.val(curr_selection);
     select__which_combo.trigger("chosen:updated");
+//    select__which_combo.change();
 }
 
 var manageCategoriesDone = function() {
-    $('#manage_categories').html('');
-
-//    var payment_id = $('#form__payment_detail').find('#payment_id').val();
-//    updatePaymentAjax({ 'payment_id' : payment_id });
+    $('.tr__calendar_inline_manage_categories').remove();
+    if ($('.tr__calendar_inline_edit_row').html() === '') $('.tr__calendar_inline_edit_row').remove();
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+var selectCategories = function($this, which_category) {
+    console.debug('selectCategories:- $this: "' + $this.children(':first').text() + '", which_category: "' + which_category + '"');
+    // if choosing a new parent
+    if ((which_category === 'payment_type' && $('#id__manage_categories_categories td.selected').parent().length === 1)
+            || (which_category === 'category' && $('#id__manage_categories_subcategories td.selected').parent().length === 1)) {
+        $this.siblings().andSelf().addClass('selected');
+        var parent_type;
+        var child_type;
+        var child_name;
+        var payload;
+        if (which_category === 'payment_type') {
+            parent_type =  'Payment Type';
+            child_type = 'Category';
+            child_name = $('#id__manage_categories_categories td.selected:first').text();
+            payload = 'new_payment_type_for_category=' + $this.data('payment_type_id')
+                    + '&category_id=' + $('#id__manage_categories_categories td.selected').parent().data('category_id');
+        } else {
+            parent_type = 'Category';
+            child_type = 'Subcategory';
+            child_name = $('#id__manage_categories_subcategories td.selected:first').text();
+            payload = 'new_category_for_subcategory=' + $this.data('category_id')
+                    + '&subcategory_id=' + $('#id__manage_categories_subcategories td.selected').parent().data('subcategory_id');
+        }
+        var dialog_html = '<div id="dialog" name="dialog"><div class="ui-icon ui-icon-info" style="margin-top: 20px;margin-left: 20px;position: relative;float: left;"></div>'
+                        + '<div style="margin-top: 20px;position: relative;float: right;width: 80%;">Do you want to update the '
+                        + parent_type + ' of "' + child_name + '" to "' + $this.children(':first').text() + '"?</div></div>'
+        $this.append(dialog_html);
+        $( "#dialog" ).dialog({
+            dialogClass: "dialog-no-titlebar",
+            position: { my: "left top", at: "right top", of: $this },
+            buttons: [
+                {
+                    text: "OK",
+                    click: function() {
+                        processManageCategories(payload);
+                        $(this).dialog( "close" );
+                        return false;
+                    }
+                },
+                {
+                    text: "Cancel",
+                    click: function() {
+                        $(this).dialog( "close" );
+                    }
+                }
+            ],
+            modal: true
+            });
+    }
 
-// Unused code
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function initManageCategories__manual(categorymapstr) {
-    // hide category and subcategory initially
-//    toggleManageCategoryFields('both', false);
-//    var categorymap = categorymapstr.split(";");
-
-    // hook up events
-    $('#id_payment_type').change(function () {
-//        alert($(this).find('option:selected').text());
-//        toggleManageCategoryFields('category', true);
-
-        // rebuild category combo
-        $('#id_category').empty();
-        var oitems = [];
-        for (c in categorymap) {
-            var citems = categorymap[c].split(',');
-//            alert('citems[0]: ' + citems[0] + ', $(this): ' + $(this).find('option:selected').text());
-            if (citems[0] == $(this).find('option:selected').text()) {
-                oitems.push(citems[1]);
+    $('#id__manage_categories_payment_types td').each(function() { $(this).removeClass('highlighted'); $(this).removeClass('selected'); });
+    $('#id__manage_categories_categories td').each(function() { $(this).removeClass('highlighted'); $(this).removeClass('selected'); });
+    $('#id__manage_categories_subcategories td').each(function() { $(this).removeClass('highlighted'); $(this).removeClass('selected'); });
+    $this.children('td').addClass('selected');
+    $('#txt__payment_type_update').val((which_category === 'payment_type') ? $this.children(':first').text() : '');
+    $('#txt__category_update').val((which_category === 'category') ? $this.children(':first').text() : '');
+    $('#txt__subcategory_update').val((which_category === 'subcategory') ? $this.children(':first').text() : '');
+    for (i = 0; i < categorymap.length; i++) {
+        if (which_category === 'payment_type' && $this.data('payment_type_id') == categorymap[i][0]) {
+            if (typeof(categorymap[i][1]) !== 'undefined') {
+                $('#id__manage_categories_categories tr').each(function() { if ($(this).data('category_id') == categorymap[i][1]) $(this).children('td').addClass('highlighted'); });
+            }
+            if (typeof(categorymap[i][2]) !== 'undefined') {
+                $('#id__manage_categories_subcategories tr').each(function() { if ($(this).data('subcategory_id') == categorymap[i][2]) $(this).children('td').addClass('highlighted'); });
             }
         }
-        uoitems = _.uniq(oitems, false);
-        $('#id_category').append('<option>--- Choose category ---</option>');
-        for (o in uoitems) {
-//            alert(uoitems[o]);
-            $('#id_category').append($('<option/>', {
-                text : uoitems[o]
-            }));
-        }
-    })
-
-    $('#id_category').change(function () {
-//        alert($(this).find('option:selected').text());
-//        toggleManageCategoryFields('subcategory', true);
-
-        // rebuild category combo
-        $('#id_subcategory').empty();
-        var oitems = [];
-        for (c in categorymap) {
-            var citems = categorymap[c].split(',');
-//            alert('citems[0]: ' + citems[0] + ', $(this): ' + $(this).find('option:selected').text());
-            if (citems[1] == $(this).find('option:selected').text()) {
-                oitems.push(citems[2]);
+        if (which_category === 'category' && $this.data('category_id') == categorymap[i][1]) {
+            $('#id__manage_categories_payment_types tr').each(function() { if ($(this).data('payment_type_id') == categorymap[i][0]) $(this).children('td').addClass('highlighted'); });
+            if (typeof(categorymap[i][2]) !== 'undefined') {
+                $('#id__manage_categories_subcategories tr').each(function() { if ($(this).data('subcategory_id') == categorymap[i][2]) $(this).children('td').addClass('highlighted'); });
             }
         }
-        uoitems = _.uniq(oitems, false);
-        $('#id_subcategory').append('<option>--- Choose subcategory ---</option>');
-        for (o in uoitems) {
-//            alert(uoitems[o]);
-            $('#id_subcategory').append($('<option/>', {
-                text : uoitems[o]
-            }));
+        if (which_category === 'subcategory' && $this.data('subcategory_id') == categorymap[i][2]) {
+            $('#id__manage_categories_payment_types tr').each(function() { if ($(this).data('payment_type_id') == categorymap[i][0]) $(this).children('td').addClass('highlighted'); });
+            $('#id__manage_categories_categories tr').each(function() { if ($(this).data('category_id') == categorymap[i][1]) $(this).children('td').addClass('highlighted'); });
         }
-    })
+        $('#txt__' + which_category + '_update').select();
+    }
 }
 
-function initManageCategories__full_rebuild(categorymap) {
-
-    // hook up events
-    $('.mc_payment_type').change(function () {
-        hideUpdateFields();
-
-        // rebuild category list for payment type selected
-        //  1. create list of valid categories for selected payment type
-        var valid_categories = [];
-        for (i = 0; i < categorymap.length; i++) {
-            if (categorymap[i][0] == $(this).find('option:selected').val()
-                && $.inArray(categorymap[i][1],valid_categories) == -1) {
-                valid_categories.push(categorymap[i][1]);
+var deleteCategory = function ($this, which_combo) {
+    var dialog_html = '<div id="dialog" name="dialog"><div class="ui-icon ui-icon-alert" style="margin-top: 20px;margin-left: 20px;position: relative;float: left;"></div>'
+                    + '<div style="margin-top: 20px;position: relative;float: right;width: 80%;">Are you sure you want to delete '
+                    + '"' + $this.closest('tr').children(':first-child').text() + '"?</div></div>'
+    $this.append(dialog_html);
+    $( "#dialog" ).dialog({
+        dialogClass: "dialog-no-titlebar",
+        position: { my: "left top", at: "right top", of: $this },
+        buttons: [
+            {
+                text: "OK",
+                click: function() {
+                    var payload = new Object();
+                    payload['delete_' + which_combo] = $this.closest('tr').data(which_combo + '_id');
+                    processManageCategories(payload);
+                    $(this).dialog( "close" );
+                    return false;
+                }
+            },
+            {
+                text: "Cancel",
+                click: function() {
+                    $(this).dialog( "close" );
+                }
             }
-        }
-//        console.log('valid_categories:' + valid_categories);
-
-        //  2. rebuild categories list
-        $('.mc_category').empty()
-        for (j = 0; j < valid_categories.length; j++) {
-//            console.log('manage_categories[valid_categories[[' + j + ']]:' + categories[valid_categories[j]]);
-            $('.mc_category').append($('<option>', {
-                value: valid_categories[j],
-                text: categories[valid_categories[j]]
-            }));
-        }
-        if ($('.mc_category').children().length == 0) {
-            $('.mc_category').append($('<option>', {
-                value: -1,
-                text: '--- No categories ---'
-            }));
-
-            // 3. clear subcategories
-            $('.mc_subcategory').empty()
-            $('.mc_subcategory').append($('<option>', {
-                value: -1,
-                text: '--- Select Category ---'
-            }));
-        }
-        else {
-            $('.mc_category option:first-child').attr("selected", "selected").change();
-        }
-
-    });
-
-    $('.mc_category').change(function () {
-        // rebuild subcategory list for category selected
-        //  1. create list of valid subcategories for selected category
-        var valid_subcategories = [];
-        for (i = 0; i < categorymap.length; i++) {
-            if (categorymap[i][1] == $(this).find('option:selected').val()
-                && $.inArray(categorymap[i][2],valid_subcategories) == -1) {
-                valid_subcategories.push(categorymap[i][2]);
-            }
-        }
-        console.log('valid_subcategories:' + valid_subcategories);
-
-        //  2. rebuild subcategories list
-        $('.mc_subcategory').empty()
-        for (j = 0; j < valid_subcategories.length; j++) {
-            console.log('subcategories[valid_subcategories[[' + j + ']]:' + subcategories[valid_subcategories[j]]);
-            $('.mc_subcategory').append($('<option>', {
-                value: valid_subcategories[j],
-                text: subcategories[valid_subcategories[j]]
-            }));
-        }
-        if ($('.mc_subcategory').children().length == 0) {
-            $('.mc_subcategory').append($('<option>', {
-                value: -1,
-                text: '--- No subcategories ---'
-            }));
-        }
-        else {
-            $('.mc_subcategory option:first-child').attr("selected", "selected").change();
-        }
-    })
-
-    $('#button__edit_payment_type').click(_.debounce(function(){showUpdateFields('payment_type',true)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__new_payment_type').click(_.debounce(function(){showUpdateFields('payment_type',false)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__edit_category').click(_.debounce(function(){showUpdateFields('category',true)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__new_category').click(_.debounce(function(){showUpdateFields('category',false)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__edit_subcategory').click(_.debounce(function(){showUpdateFields('subcategory',true)},MILLS_TO_IGNORE_CLICKS, true));
-    $('#button__new_subcategory').click(_.debounce(function(){showUpdateFields('subcategory',false)},MILLS_TO_IGNORE_CLICKS, true));
-
-    $('#button__category_update').click(_.debounce(function(){updateCategoryValues.call(this, 'category')},MILLS_TO_IGNORE_CLICKS, true));
-
-    // initialise UI
-    $('#id_payment_type option:first-child').attr("selected", "selected").change();
+        ],
+        modal: true
+        });
 }
-

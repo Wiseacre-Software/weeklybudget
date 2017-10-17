@@ -1,9 +1,5 @@
 /****** Page Layout ******/
 
-BODY {
-    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif;
-}
-
 #content {
     position: relative;
     float: left;
@@ -12,15 +8,6 @@ BODY {
 .bank_account_view {
     position: relative;
     float: left;
-}
-
-.row {
-  display: table;
-}
-
-.col {
-    display: table-cell;
-    padding: 1em;
 }
 
 .calendar_pane {
@@ -74,95 +61,8 @@ BODY {
     padding-top: 10px
 }
 
-.money {
-    text-align: right
-}
-
 .recently-updated {
     border: solid blue 6px;
-}
-
-.ui-spinner-input {
-    width: 30px;
-}
-
-.error_message
-{
-    display: none;
-    padding: 1em;
-}
-
-.error_message_field
-{
-    /*display: none;*/
-    padding: 0.1em 0.2em;
-}
-
-.error {
-    display: block;
-}
-
-.valid {
-    display: none;
-}
-
-.result-message-box {
-    margin-top: 10px;
-    padding: 10px;
-}
-
-.result-message-box .result-icon{
-    float: left;
-    margin-right: .3em;
-}
-
-.result-message-box-success {
-    background: #c6efce !important;
-    color: #006100 !important;
-    border-color: #006100 !important;
-}
-
-.overlay {
-    display: none;
-    position: absolute;
-    padding: 1.2em
-}
-
-/****** Navigation ******/
-#banner {
-    width: 100%;
-    font: 2em 'Century Gothic';
-    padding: 1em;
-}
-
-#menubar {
-    width: 100%;
-    margin-top: 0.1em;
-    height: 3em;
-}
-
-#dmenubar div {
-    position: relative;
-    float: left;
-}
-
-#menubar a:link, #menubar a:visited {
-    background-color: #FFC683;
-    color: white;
-    padding: 14px 25px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-}
-
-/****** Dialogs ******/
-
-.dialog-no-close .ui-dialog-titlebar-close {
-  display: none;
-}
-
-.dialog-no-titlebar .ui-dialog-titlebar {
-    display: none;
 }
 
 /****** Payment Styles ******/
@@ -176,8 +76,12 @@ BODY {
     padding-right: 0.1em !important;
 }
 
-
 /****** Update Payment ******/
+
+input, select {
+    padding: 4px;
+    width: 200px;
+}
 
 #form__payment_detail input, #form__payment_detail select {
     margin-right: 20px;
@@ -190,6 +94,10 @@ BODY {
 
 #table__payment_detail__payment_date {
     width: 100%;
+}
+
+#table__payment_detail__payment_date td {
+
 }
 
 .td__series_choice label {
@@ -226,9 +134,9 @@ BODY {
     vertical-align: bottom;
 }
 
-#td__payment_schedule__weekly {
-    height: 3.0em;
-    vertical-align: bottom;
+#span__weekly_dow_day label {
+   margin-top: 10px;
+   margin-right: 5px;
 }
 
 .tr__payment_frequency_details td {
@@ -240,8 +148,26 @@ BODY {
     vertical-align: bottom;
 }
 
-#span__weekly_dow_day label {
-    margin-right: 5px;
+#tr__payment_schedule__linked td {
+    height: 2em;
+    padding-top: 10px !important;
+}
+
+#tr__payment_schedule__until td {
+    padding-top: 21px;
+}
+
+#tr__payment_schedule__until label {
+    height: 2em;
+    margin-top: 10px;
+}
+
+#label__until_forever span {
+    margin-top: 5px;
+}
+
+#span__until_forever {
+    padding-top: 17px !important;
 }
 
 #calendar__overlay {
@@ -250,8 +176,30 @@ BODY {
 
 /****** Calendar View ******/
 
+#div__calendar {
+    overflow-y: scroll;
+    height: 500px;
+}
+
+#table__calendar thead, #table__calendar tbody {
+    /* display: block; */
+}
+
+#table__calendar tbody {
+    height: 500px;       /* Just for the demo          */
+    overflow-y: auto;    /* Trigger vertical scroll    */
+    overflow-x: hidden;  /* Hide the horizontal scroll */
+}
+#table__calendar input {
+    width: 100px;
+}
+
 .dataTable {
     width: 100%;
+}
+
+.dataTable td.highlight {
+    background-color: whitesmoke !important;
 }
 
 .a-paid-received {
@@ -271,24 +219,146 @@ BODY {
     text-align: center;
 }
 
+#table__calendar button {
+    white-space: nowrap;
+}
+
+.calendar_search {
+    padding: 10px 0;
+}
+
+.calendar_search #txt__calendar_search {
+    width: 100%;
+}
+
+.calendar__curr_balance {
+    font-style: italic;
+    color: darkgray;
+}
+.button-update-account-save
+{
+    margin-left: 10px;
+}
+
 /****** Bank Accounts ******/
 
 #href__add_account {
     margin-top: 10px;
 }
-
 #form__bank_account_update .bank_account_balance {
     width: 100px;
+}
+#table__accounts tbody tr:first-child td
+{
+    border-top: none;
+}
+#table__accounts td {
+    border-top: 1px solid #ddd;
+}
+
+.div__edit_bank_account_type_buttons {
+    margin-left: 10px;
+    text-align: right;
+}
+
+span.grippy {
+  content: '....';
+  width: 10px;
+  height: 20px;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 5px;
+  padding: 3px 4px;
+  cursor: move;
+  vertical-align: middle;
+  margin-top: -.7em;
+  margin-right: .3em;
+  font-size: 12px;
+  font-family: sans-serif;
+  letter-spacing: 2px;
+  color: #cccccc;
+  text-shadow: 1px 0 1px black;
+}
+span.grippy::after {
+  content: '.. .. .. ..';
+}
+.account__min_balance_date {
+    font-style: italic;
+    color: darkgray;
+    text-align: right;
 }
 
 /****** Manage Categories ******/
 
-#ptable__manage_categories {
-    width: 100%;
-}
-
 #table__manage_categories select {
     width: 80%;
 }
-
+#tr__manage_categories_lists div {
+    overflow-y: scroll;
+    height: 180px;
+    width: 100%;
+}
+.tr__manage_categories_list_labels div {
+    width: 100%;
+    vertical-align: middle;
+}
+.tr__manage_categories_list_labels_label {
+    position: relative;
+    float: left;
+    padding-top: 4px;
+}
+.tr__manage_categories_list_labels_button {
+    position: relative;
+    float: right;
+}
+#id__manage_categories_payment_types,
+#id__manage_categories_categories,
+#id__manage_categories_subcategories {
+    width: 100%;
+    border-collapse: collapse;
+}
+#id__manage_categories_payment_types tr,
+#id__manage_categories_categories tr,
+#id__manage_categories_subcategories tr {
+    border-top: 1px solid #ddd;
+}
+#id__manage_categories_payment_types tr td,
+#id__manage_categories_categories tr td,
+#id__manage_categories_subcategories tr td {
+    background: white;
+    padding: 4px !important;
+}
+#id__manage_categories_payment_types .selected,
+#id__manage_categories_categories .selected,
+#id__manage_categories_subcategories .selected {
+    background-color: #3C7492;
+    color: white;
+}
+#id__manage_categories_payment_types tr:hover td,
+#id__manage_categories_payment_types .highlighted,
+#id__manage_categories_categories tr:hover td,
+#id__manage_categories_categories .highlighted,
+#id__manage_categories_subcategories tr:hover td,
+#id__manage_categories_subcategories .highlighted {
+    background-color: #ccc;
+    cursor: pointer;
+}
+.tr__category_update input {
+    width: 65%;
+}
+#id__manage_categories_payment_types button,
+#id__manage_categories_categories button,
+#id__manage_categories_subcategories button {
+    visibility: hidden;
+}
+#id__manage_categories_payment_types tr:hover button,
+#id__manage_categories_categories tr:hover button,
+#id__manage_categories_subcategories tr:hover button {
+    visibility: visible;
+}
+.td__manage_categories_payment_types_action,
+.td__manage_categories_categories_action,
+.td__manage_categories_subcategories_action {
+    text-align: right;
+}
 /****** Dividers ******/

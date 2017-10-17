@@ -1,14 +1,7 @@
 //THIS MUST BE IMPORTED AS THE VERY LAST THING BEFORE THE CLOSE </body>
 //tag.
 
-/**
-  The number of milliseconds to ignore clicks on the *same*
-  button, after a button *that was not ignored* was clicked. Used by
-  `$(document).ready()`.
 
-  Equal to <code>500</code>.
- */
-var MILLS_TO_IGNORE_CLICKS = 500;
 
 /**
    The Ajax "main" function. Attaches the listeners to the elements on
@@ -88,7 +81,7 @@ $(document).ready(function()  {
 
 var paymentListLoadComplete = function( settings, json ) {
 //            $('div.loading').remove();
-    $('#table__payments td.money').autoNumeric('init', {aSign: '$'});
+    $('#table__payments .money').autoNumeric('init', {aSign: '$'});
     $('#table__payments .button-update')
         .button( {
             icons: { primary: 'ui-icon-pencil', secondary: null },
@@ -108,26 +101,6 @@ var getPayments = function() {
             method: "POST",
             url: URL__GET_PAYMENTS
         })
-}
-
-// Set up Cross Site Request Forgery protection
-function csrfSafeMethod(method) {
-    // these HTTP methods do not require CSRF protection
-    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-}
-var csrftoken = $.cookie('csrftoken');
-$.ajaxSetup({
-    beforeSend: function(xhr, settings) {
-        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-        }
-    }
-});
-
-var ajaxErr = function(xhr,errmsg,err) {
-    $('#payment_detail').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: " + xhr.responseText +
-        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
 }
 
 var togglePane = function(event) {

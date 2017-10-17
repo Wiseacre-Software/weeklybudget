@@ -7,18 +7,19 @@
         {{ form.monthly_frequency }}
         {{ form.monthly_wom }}
         {{ form.monthly_dow }}
+        {{ form.until_type }}
         <table id="table__payment_detail">
             <tr class="tr__payment_detail_field_labels">
                 <td><label for="{{ form.title.id_for_label }}">Title</label></td>
                 <td><label for="{{ form.amount.id_for_label }}">Amount</label></td>
+                <td><label for="{{ form.account.id_for_label }}">Account</label></td>
                 <td><label for="{{ form.in_out.id_for_label }}">In/Out</label></td>
-                <td class="td__spacer"></td>
             </tr>
             <tr class="tr__payment_detail_fields">
                 <td>{{ form.title }}</td>
                 <td>{{ form.amount }}</td>
+                <td>{{ form.account }}</td>
                 <td>{{ form.in_out }}</td>
-                <td class="td__spacer"></td>
             </tr>
             <tr class="tr__payment_detail_field_labels">
                 <td><label for="{{ form.payment_type.id_for_label }}">Payment Type</label></td>
@@ -35,13 +36,17 @@
             <tr class="tr__payment_detail_field_labels">
                 <td><label for="{{ form.next_date.id_for_label }}">Next Payment</label></td>
                 <td><label for="{{ form.schedule_frequency.id_for_label }}">Payment Frequency</label></td>
+                <td class="td__spacer"></td>
+                <td class="td__spacer"></td>
             </tr>
             <tr class="tr__payment_detail_fields">
                 <td>{{ form.next_date }}</td>
                 <td>{{ form.schedule_frequency }}</td>
+                <td class="td__spacer"></td>
+                <td class="td__spacer"></td>
             </tr>
-            <tr id="td__payment_schedule__weekly" style="display: none">
-                <td colspan="4">
+            <tr id="tr__payment_schedule__weekly" style="display: none">
+                <td colspan="4"><span id="td__payment_schedule__weekly">
                     Every
                     <span id="span__weekly_dow_day">
                         {{ form.weekly_dow_mon }}
@@ -60,15 +65,22 @@
                         <label for="{{ form.weekly_dow_sun.id_for_label }}">Sunday</label>
                     </span>
                     of every <input id="input__weekly_dow_frequency" value="1"/> <label id="label__weekly_dow_frequency">week</label><br />
-                </td>
+                </span></td>
             </tr>
-            <tr id="td__payment_schedule__monthly" style="display: none">
-                <td colspan="6">
-                    <input type="radio" name="radio__monthly_style" value="day_of_month" />
+            <tr id="tr__payment_schedule__monthly" style="display: none">
+                <td colspan="4" class="td__monthly_style">
+                    <input type="radio" name="radio__monthly_style" id="radio__monthly_style_dom" value="day_of_month" />
+                    <label for="radio__monthly_style_dom">
+                        <span id="radio__monthly_style_dom_label">
                         The <select id="select__monthly_dom_day"></select>
                         <select id="select__monthly_dom_last"><option></option><option>last</option></select>
-                        day of every <input id="input__monthly_dom_frequency" value="1"/> <label id="label__monthly_dom_frequency">month</label><br /><br />
-                    <input type="radio" name="radio__monthly_style" value="day_of_week" checked="checked" />
+                        day of every <input id="input__monthly_dom_frequency" value="1"/> <label id="label__monthly_dom_frequency">month</label>
+                        </span>
+                    </label>
+                    <br/>
+                    <input type="radio" name="radio__monthly_style"  id="radio__monthly_style_dow" value="day_of_week" checked="checked" />
+                    <label for="radio__monthly_style_dow">
+                        <span id="radio__monthly_style_dow_label">
                         The <select id="select__monthly_wom_nth" class="select__payment_schedule__monthly"></select>
                         <select id="select__monthly_wom_last" class="select__payment_schedule__last"><option></option><option>last</option></select>
                         <select id="select__monthly_wom_day" class="select__payment_schedule__monthly">
@@ -81,13 +93,37 @@
                             <option value="6">Sunday</option>
                         </select>
                         of every <input id="input__monthly_wom_frequency" value="1"/> <label id="label__monthly_wom_frequency">month</label>
+                        </span>
+                    </label>
                 </td>
             </tr>
-            <tr id="td__payment_schedule__annual" style="display: none">
-                <td colspan="6">
+            <tr id="tr__payment_schedule__annual" style="display: none">
+                <td colspan="4">
                         The {{ form.annual_dom }}
                         of {{ form.annual_moy }}
                         of every {{ form.annual_frequency }} <label id="label__annual_frequency">year</label><br />
+                </td>
+            </tr>
+            <tr id="tr__payment_schedule__linked" style="display: none">
+                <td>
+                    <label for="{{ form.linked_to.id_for_label }}">Link to payment</label><br />
+                    {{ form.linked_to }}
+                </td>
+                <td>
+                    <label for="{{ form.offset.id_for_label }}">Offset by</label><br />
+                    {{ form.offset  }} {{ form.offset_type }}
+                </td>
+                <td class="td__spacer"></td>
+                <td class="td__spacer"></td>
+            </tr>
+            <tr id="tr__payment_schedule__until" style="display: none">
+                <td colspan="4">
+                    <input type="radio" name="radio__until" id="radio__until_forever" value="until_forever" checked="checked" />
+                    <label id="label__until_forever" for="radio__until_forever"><span id="span__until_forever">Forever</span></label>
+                    <input type="radio" name="radio__until"  id="radio__until_occurrences" value="until_occurrences" />
+                    <label for="radio__until_occurrences">{{ form.occurrences }} times</label>
+                    <input type="radio" name="radio__until"  id="radio__until_end_date" value="until_end_date" />
+                    <label for="radio__until_end_date">Until {{ form.end_date }}</label>
                 </td>
             </tr>
             <tr class="tr__payment_detail_field_labels">
@@ -102,7 +138,7 @@
 
     <script language="javascript">
         try {
-            var categorymap = jQuery.parseJSON("{{ categorymap }}");
+            categorymap = jQuery.parseJSON("{{ categorymap }}");
         } catch (e) {
             console.log('categorymap not read in: ' + e);
             console.log(categorymap);
