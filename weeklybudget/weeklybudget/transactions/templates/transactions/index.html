@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'transactions_main.css' %}" />
+{% endblock %}
+
+{% block title %}Weekly Budget - Transactions{% endblock %}
+
+{% block content %}
+
+<div class="content_section row">
+    <div id="div__user_message" class="result-message-box ui-state-highlight ui-corner-all" style="display: none">
+        <span class="ui-icon result-icon"></span>
+        <span class="result-message-text"></span>
+    </div>
+</div>
+
+<div class="content_section row">
+    <div id="div__upload_table">
+        <table id="tbl__upload_table" class="display" width="100%"></table>
+    </div>
+    <div class="col">
+        <div class="row">
+            <div id="transaction_upload_label">Please select transaction file to upload</div>
+        </div>
+        <div class="row">
+            <div id="div__file_upload">
+                <form id="frm_file_upload" action="{% url 'transactions:index' %}" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col">
+                            <span>Account:</span>
+                        </div>
+                        <div class="col">
+                           {{ form.account }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <span class="transaction_upload_field">{{ form.file }}</span>
+                        </div>
+                        <div class="col">
+                            <button id="btn__upload_file_submit">Upload</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div id="div__upload_modify">
+                <label for="chk__header_row">File has header row</label>
+                <input type="checkbox" name="chk__header_row" id="chk__header_row">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type='text/javascript' src="{% static 'transactions_main.js' %}"></script>
+
+<script language="javascript">
+    // URL constants from transactions.urls
+    var URL__FILE_UPLOAD = "{% url 'transactions:upload_file' %}";
+
+    // Context from view
+    try {
+        var transactions_rows =  jQuery.parseJSON('{{ transactions_rows|escapejs }}');
+        var has_header = '{{ has_header }}';
+        var fields_payment_date = '{{ fields_payment_date }}';
+        var fields_description = '{{ fields_description }}';
+        var fields_incoming = '{{ fields_incoming }}';
+        var fields_incoming_sign = '{{ fields_incoming_sign }}';
+        var fields_outgoing = '{{ fields_outgoing }}';
+        var fields_outgoing_sign = '{{ fields_outgoing_sign }}';
+    } catch (e) {
+        console.error('transactions_rows not read in: ' + e);
+    }
+
+    initFileUpload(transactions_rows, has_header);
+</script>
+
+{% endblock %}

@@ -1,0 +1,44 @@
+/****** Upload ******/
+
+#transaction_upload_label {
+    font-weight: bold;
+}
+
+#tbl__upload_table {
+    overflow-y: scroll;
+    height: 500px;
+    min-width: 1000px;
+    margin: 10px;
+}
+#tbl__upload_table tbody {
+    height: 500px;       /* Just for the demo          */
+    overflow-y: auto;    /* Trigger vertical scroll    */
+    overflow-x: hidden;  /* Hide the horizontal scroll */
+}
+
+/****** Transaction table ******/
+
+.div__ind_header_button {
+    border-radius: 15px;
+    padding: 10px 10px;
+    border-width: 4px;
+    border-style: ridge;
+    cursor: move;
+}
+
+.div__ind_header_date {
+    border-color: green;
+    background: lightgreen;
+}
+.div__ind_header_description {
+    border-color: #1F4E78;
+    background: #9BC2E6;
+}
+.div__ind_header_incoming {
+    border-color: #800080;
+    background: #FF8FFF;
+}
+.div__ind_header_outgoing {
+    border-color: #DED900;
+    background: #FFFF00;
+}
