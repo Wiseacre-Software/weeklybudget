@@ -1,0 +1,41 @@
+<div id="div__accounts" class="dataTables_wrapper">
+    <div class="fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"></div>
+
+    <table id="table__accounts" class="dataTable">
+        <thead>
+            <tr>
+                <th class="ui-state-default">Title</th>
+                <th class="ui-state-default">Balance</th>
+                <th class="ui-state-default">Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bank_account in bank_accounts %}
+            <tr data-bank_account_id="{{ bank_account.pk }}"
+                data-bank_account_title="{{ bank_account.title }}"
+                data-bank_account_balance="{{ bank_account.current_balance }}"
+                data-bank_account_type="{{ bank_account.account_type }}">
+                <td class="td__bank_account_title">{{ bank_account.title }}</td>
+                <td class="td__bank_account_balance">{{ bank_account.current_balance }}</td>
+                <td class="td__bank_account_type dt-nowrap">
+                    {% if bank_account.account_type == 'debit' %}Debit
+                    {% elif bank_account.account_type == 'credit' %}Credit
+                    {% elif bank_account.account_type == 'virtual' %}Virtual
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="3">
+                    <!--<span id="span_add_account_form"></span>-->
+                    <a id="href__add_account">+ Add Account</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"></div>
+</div>
+
+<script>
+    initBankAccountView();
+</script>

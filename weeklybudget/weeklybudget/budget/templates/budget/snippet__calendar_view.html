@@ -1,0 +1,24 @@
+{% load babel %}
+
+<div id="div__calendar">
+<table id="table__calendar" style="width: 100%">
+    <thead>
+    <tr>
+        <th>Date</th>
+        <th class="hide-in-compact">Type</th>
+        <th class="hide-in-compact">Category</th>
+        <th class="hide-in-compact">Subcategory</th>
+        <th>Name</th>
+        <th>Outgoing</th>
+        <th>Incoming</th>
+        <th>Balance</th>
+        <th>Paid/Received</th>
+    </tr>
+    </thead>
+</table>
+</div>
+
+<script>
+    initCalendarView();
+    var result = '{{ result }}'
+</script>

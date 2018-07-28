@@ -1,0 +1,51 @@
+/* CSS - Cascading Style Sheet */
+/* Palette color codes */
+/* Palette URL: http://paletton.com/#uid=72J0K0kjWsWa2TDfyEfnxm7qTc2 */
+
+.color-primary-0 { color: #67C44A }	/* Main Primary color */
+.color-primary-1 { color: #BCF6A9 }
+.color-primary-2 { color: #90E375 }
+.color-primary-3 { color: #429528 }
+.color-primary-4 { color: #1D510D }
+
+.color-secondary-1-0 { color: #3C7492 }	/* Main Secondary color (1) */
+.color-secondary-1-1 { color: #A4D1EA }
+.color-secondary-1-2 { color: #669EBD }
+.color-secondary-1-3 { color: #225570 }
+.color-secondary-1-4 { color: #0C2C3D }
+
+.color-secondary-2-0 { color: #E7A557 }	/* Main Secondary color (2) */
+.color-secondary-2-1 { color: #FFDAAF }
+.color-secondary-2-2 { color: #FFC683 }
+.color-secondary-2-3 { color: #B0752F }
+.color-secondary-2-4 { color: #603B0F }
+
+.color-complement-0 { color: #DB5366 }	/* Main Complement color */
+.color-complement-1 { color: #FCADB8 }
+.color-complement-2 { color: #F67F8F }
+.color-complement-3 { color: #A82C3D }
+.color-complement-4 { color: #5B0F19 }
+
+.background-color-primary-0 { background-color: #67C44A }	/* Main Primary color */
+.background-color-primary-1 { background-color: #BCF6A9 }
+.background-color-primary-2 { background-color: #90E375 }
+.background-color-primary-3 { background-color: #429528 }
+.background-color-primary-4 { background-color: #1D510D }
+
+.background-color-secondary-1-0 { background-color: #3C7492 }	/* Main Secondary background-color (1) */
+.background-color-secondary-1-1 { background-color: #A4D1EA }
+.background-color-secondary-1-2 { background-color: #669EBD }
+.background-color-secondary-1-3 { background-color: #225570 }
+.background-color-secondary-1-4 { background-color: #0C2C3D }
+
+.background-color-secondary-2-0 { background-color: #E7A557 }	/* Main Secondary background-color (2) */
+.background-color-secondary-2-1 { background-color: #FFDAAF }
+.background-color-secondary-2-2 { background-color: #FFC683 }
+.background-color-secondary-2-3 { background-color: #B0752F }
+.background-color-secondary-2-4 { background-color: #603B0F }
+
+.background-color-complement-0 { background-color: #DB5366 }	/* Main Complement background-color */
+.background-color-complement-1 { background-color: #FCADB8 }
+.background-color-complement-2 { background-color: #F67F8F }
+.background-color-complement-3 { background-color: #A82C3D }
+.background-color-complement-4 { background-color: #5B0F19 }

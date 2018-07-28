@@ -1,0 +1,21 @@
+<form id="form__payment_detail">
+    {{ form.payment_id }}
+    <div class="calendar__payment_classification__combos">
+        <span id="span__calendar_edit__payment_type">
+            {{ form.payment_type }}
+        </span><br/>
+        <span id="span__calendar_edit__category">
+            {{ form.category }}
+        </span><br/>
+        <span id="span__calendar_edit__subcategory">
+            {{ form.subcategory }}
+        </span>
+        <button class='button__calendar_edit__classification_update'>Save Changes</button>
+        <button class='button__calendar_edit__classification_cancel payment_edit_cancel'>Cancel</button>
+        <button class='button__calendar_edit__classification_edit'>Manage Subcategories</button>
+    </div>
+    <div id="div__update_payment_result" class="result-message-box ui-state-highlight ui-corner-all" style="display: none">
+        <span class="ui-icon result-icon"></span>
+        <span class="result-message-text"></span>
+    </div>
+</form>

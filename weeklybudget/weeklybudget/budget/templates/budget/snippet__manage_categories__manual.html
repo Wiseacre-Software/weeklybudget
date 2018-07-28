@@ -1,0 +1,54 @@
+        <table id="table__manage_categories">
+            <tr>
+                <td><label for="manage_payment_type">Payment Type: </label></td>
+                <td>
+                    <select id="manage_payment_type" name="manage_payment_type">
+                        <option value="0">--- Choose payment type ---</option>
+                        {% for manage_payment_type in manage_payment_types %}
+                            <option value="{{ manage_payment_type.id }}">{{ manage_payment_type.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td id="td__category_label"><label for="manage_payment_category">Category: </label></td>
+                <td id="td__category_list">
+                    <select id="manage_payment_category" name="manage_payment_category">
+                        <option value="0">--- Choose category ---</option>
+                        {% for manage_category in manage_categories %}
+                                <option value="{{ manage_category.id }}">{{ manage_category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td id="td__subcategory_label"><label for="manage_payment_subcategory">Sub Category: </label></td>
+                <td id="td__subcategory_list">
+                    <select id="manage_payment_subcategory" name="manage_payment_subcategory">
+                        <option value="0">--- Choose subcategory ---</option>
+                        {% for manage_subcategory in manage_subcategories %}
+                            <option value="{{ manage_subcategory.id }}">{{ manage_subcategory.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td>
+                    <button id="button__edit_payment_type">Edit Payment Type</button><br/>
+                    <button id="button__new_payment_type">New Payment Type</button>
+                </td>
+                <td id="td__category_buttons_spacer">&nbsp;</td>
+                <td id="td__category_buttons">
+                    <button id="button__edit_category">Edit Category</button><br/>
+                    <button id="button__new_category">New Category</button>
+                </td>
+                <td id="td__subcategory_buttons_spacer">&nbsp;</td>
+                <td id="td__subcategory_buttons">
+                    <button id="button__edit_subcategory">Edit SubCategory</button><br/>
+                    <button id="button__new_subcategory">New SubCategory</button>
+                </td>
+            </tr>
+        </table>
+
+    <script language="javascript">
+         var categorymap = '{{ categorymap }}';
+
+         initManageCategories(categorymap);
+    </script>

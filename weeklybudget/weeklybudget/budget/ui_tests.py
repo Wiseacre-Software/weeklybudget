@@ -5,7 +5,6 @@ from time import sleep
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.template.defaultfilters import date as _date
 from selenium.webdriver import ActionChains
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -29,7 +28,6 @@ def test_bank_accounts():
     ba1 = BankAccount.objects.create(
         title='john account',
         current_balance=1000,
-        display_order=1,
         owner=user[0],
         active=True,
     )
@@ -40,7 +38,6 @@ def test_bank_accounts():
         current_balance=500,
         account_type='credit',
         account_limit=8000,
-        display_order=2,
         owner=user[0],
     )
     ba1a.save()
@@ -49,7 +46,6 @@ def test_bank_accounts():
         title='john virtual account',
         current_balance=0,
         account_type='virtual',
-        display_order=3,
         owner=user[0],
     )
     ba1b.save()
@@ -57,7 +53,6 @@ def test_bank_accounts():
     ba2 = BankAccount.objects.create(
         title='yoko account',
         current_balance=1000,
-        display_order=1,
         owner=user[1],
     )
     ba2.save()
@@ -170,9 +165,9 @@ def test_payments():
         title='Payment 2',
         in_out='o',
         amount=200,
-        payment_type=PaymentType.objects.get(name__exact='pt1'),
-        category=Category.objects.get(name__exact='cat1'),
-        subcategory=SubCategory.objects.get(name__exact='subcat1'),
+        payment_type=PaymentType.objects.get(name__exact='pt2'),
+        category=Category.objects.get(name__exact='cat2'),
+        subcategory=SubCategory.objects.get(name__exact='subcat2'),
         schedule=ps,
         account=ba1,
         owner=user[0]
@@ -190,9 +185,9 @@ def test_payments():
         title='Payment 3',
         in_out='o',
         amount=115,
-        payment_type=PaymentType.objects.get(name__exact='pt1'),
-        category=Category.objects.get(name__exact='cat1'),
-        subcategory=SubCategory.objects.get(name__exact='subcat1'),
+        payment_type=PaymentType.objects.get(name__exact='pt2'),
+        category=Category.objects.get(name__exact='cat2'),
+        subcategory=SubCategory.objects.get(name__exact='subcat2'),
         schedule=ps,
         account=ba1,
         owner=user[0]
@@ -315,10 +310,6 @@ def select_chosen_by_class(self, select_element_parent_xpath, visible_text):
     element = self.selenium.find_element_by_xpath(chosen_dev_xpath + "//li[text() = '" + visible_text + "']")
     element.click()
 
-
-def chosen_single_select_text(self, select_element_parent_xpath):
-    chosen_dev_xpath = select_element_parent_xpath + "/div[contains(@class, 'chosen-container')]"
-    return self.selenium.find_element_by_xpath(chosen_dev_xpath + "/a/span").text
 
 def print_console_logs(driver):
     print '----------------------------------------'
@@ -883,7 +874,20 @@ class TestScheduleUpdate(StaticLiveServerTestCase):
         self.assertIsNotNone(element)
         self.assertEqual(element.text, 'Payment Saved!')
 
-    def test_ui_create_payment_exclusion(self):
+        #
+        # payment_search(self.selenium, 'Payment 1')
+        # sleep(1)
+        # self.assertEqual('02/07/2016', WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located(
+        #     (By.XPATH, "//td[contains(@class,'calendar__payment_date')][contains(@class,'highlight')]"))).text)
+        # self.selenium.find_element_by_id('btn__calendar_search_next').click()
+        # sleep(1)
+        # self.assertEqual('02/07/2021', WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located(
+        #     (By.XPATH, "//td[contains(@class,'calendar__payment_date')][contains(@class,'highlight')]"))).text)
+        # self.selenium.find_element_by_id('btn__calendar_search_next').click()
+        # sleep(1)
+        # self.assertEqual('Error: No more occurrences found', self.selenium.find_element_by_id('div__user_message').text)
+
+    def test_ui_create_payment_exception(self):
         payment_date_xpath = "//tr[@data-row_id='1|2016-06-07']/td[contains(@class,'calendar__payment_date')]"
         exception_payment_date_xpath = "//tr[td[contains(., 'Payment 1')]]/td[text() = '08/06/2016']"
 
@@ -891,6 +895,7 @@ class TestScheduleUpdate(StaticLiveServerTestCase):
             .until(ec.presence_of_element_located((By.XPATH, payment_date_xpath)))
         element.click()
         update_next_date(self, payment_date_xpath, _date(date(2016, 6, 8), 'SHORT_DATE_FORMAT'), False)
+
         element = WebDriverWait(self.selenium, 1) \
             .until(ec.visibility_of_element_located((By.ID, 'div__user_message')))
         self.assertIsNotNone(element)
@@ -900,6 +905,8 @@ class TestScheduleUpdate(StaticLiveServerTestCase):
             .until(ec.presence_of_all_elements_located((By.XPATH, exception_payment_date_xpath)))
         self.assertEqual(1, len(elements))
         self.assertEqual(_date(date(2016, 6, 8), 'SHORT_DATE_FORMAT'), elements[0].text)
+
+    # TODO Make one payment dependant on another (shared schedules?)
 
 
 class TestPaymentSearch(StaticLiveServerTestCase):
@@ -1782,29 +1789,37 @@ class TestPaymentUpdate(StaticLiveServerTestCase):
             '//tr[@data-payment_id = "' + str(p.id) + '"]/td[contains(@class,"calendar__outgoing")]').text)
 
     def test_ui_update_incoming_amount_series(self):
-        payment_1_id = str(Payment.objects.get(title__exact='Payment 1').pk)
-        payment_row_id = payment_1_id + '|2016-06-07'
-        payment_1_amount_xpath = "//tr[@data-row_id='" + payment_row_id + "']/td[contains(@class,'calendar__incoming')]"
-        WebDriverWait(self.selenium, 1) \
-            .until(ec.presence_of_element_located((By.XPATH, payment_1_amount_xpath))).click()
-        sleep(1)
+        payment_1_title = Payment.objects.get(title__exact='Payment 1').title
+        payment_1_amount = Payment.objects.get(title__exact='Payment 1').amount
+        payment_1_amount_xpath = "//tr[@data-payment_id][td[contains(@class,'calendar__title')][text() = 'Payment " \
+                                 "1']]/td[contains(@class,'calendar__incoming')][not(input)] "
+        elements = WebDriverWait(self.selenium, 1) \
+            .until(ec.presence_of_all_elements_located((By.XPATH, payment_1_amount_xpath)))
+        self.assertGreater(len(elements), 1)
+        self.assertEqual(Decimal(sub(r'[^\d.]', '', elements[0].text)), payment_1_amount)
 
-        element = WebDriverWait(self.selenium, 1) \
-                       .until(ec.presence_of_element_located((By.XPATH, payment_1_amount_xpath + "/input")))
-        self.assertEqual(Decimal(sub(r'[^\d.]', '', element.get_property("value"))), 1000)
+        elements[0].click()
+        element = WebDriverWait(self.selenium, 10).until(ec.presence_of_element_located(
+            (By.XPATH, "//tr[@data-payment_id][td[contains(@class,'calendar__title')][text() = '" +
+             payment_1_title + "']]" + "/td[contains(@class,'calendar__incoming')]/input")))
+        self.assertEqual(Decimal(sub(r'[^\d.]', '', element.get_property("value"))), payment_1_amount)
         element.send_keys('2000')
 
-        self.selenium.find_element_by_class_name('button-update-detail-save-series').click()
-        print_console_logs(self.selenium)
-        sleep(1)
+        elements = self.selenium.find_elements_by_class_name('button-update-detail-save-series')
+        self.assertEqual(len(elements), 1)
+        elements[0].click()
 
-        element = WebDriverWait(self.selenium, 1) \
+        element = WebDriverWait(self.selenium, 10) \
             .until(ec.visibility_of_element_located((By.ID, 'div__user_message')))
         self.assertIsNotNone(element)
         self.assertEqual(element.text, 'Payment Saved!')
 
-        elements = self.selenium.find_elements_by_xpath(
-            "//tr[@data-payment_id='" + payment_1_id + "']/td[contains(@class, 'calendar__incoming')]")
+        WebDriverWait(self.selenium, 10) \
+            .until(ec.presence_of_all_elements_located((By.XPATH, "//tr[@data-row_id='1|2016-06-07']/td[contains("
+                                                                  "@class,'calendar__incoming')][not(input)] ")))
+        elements = WebDriverWait(self.selenium, 10) \
+            .until(ec.presence_of_all_elements_located((By.XPATH, payment_1_amount_xpath)))
+        self.assertGreater(len(elements), 1)
         self.assertEqual(Decimal(sub(r'[^\d.]', '', elements[0].text)), 2000.0)
         self.assertEqual(Decimal(sub(r'[^\d.]', '', elements[1].text)), 2000.0)
 
@@ -1917,72 +1932,6 @@ class TestPaymentUpdate(StaticLiveServerTestCase):
         self.assertEqual(0, len(self.selenium.find_elements_by_xpath(
             '//td[contains(@class, "calendar__incoming")]'
             '//button[contains(@class, "button-update-detail-save-series")]')))
-
-    def test_ui_update_payment_type(self):
-        p = Payment.objects.get(title="Payment 2")
-        payment_id = str(p.id)
-        row_id = '%d|%s' % (p.id, str(p.schedule.next_date))
-        row_xpath = '//tr[@data-row_id = "%s"]' % row_id
-
-        WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located(
-            (By.XPATH, row_xpath + '//div[contains(@class, "calendar__payment_classification")]'))).click()
-        sleep(1)
-
-        WebDriverWait(self.selenium, 1).until(ec.visibility_of_element_located(
-            (By.XPATH, row_xpath + "//div[@id = 'id_payment_type_chosen']")))
-        self.assertEqual('pt1', chosen_single_select_text(self, "//select[@id = 'id_payment_type']/.."))
-        select_chosen_by_class(self, "//select[@id = 'id_payment_type']/..", "pt1a")
-        sleep(1)
-        WebDriverWait(self.selenium, 1).until(ec.visibility_of_element_located(
-            (By.XPATH, row_xpath + "//div[@id = 'id_category_chosen']")))
-        select_chosen_by_class(self, "//select[@id = 'id_category']/..", "cat1a")
-        sleep(1)
-        WebDriverWait(self.selenium, 1).until(ec.visibility_of_element_located(
-            (By.XPATH, row_xpath + "//div[@id = 'id_subcategory_chosen']")))
-        select_chosen_by_class(self, "//select[@id = 'id_subcategory']/..", "subcat1a")
-
-        self.selenium.find_element_by_class_name('button__calendar_edit__classification_update').click()
-        sleep(1)
-
-        element = WebDriverWait(self.selenium, 1) \
-            .until(ec.visibility_of_element_located((By.ID, 'div__user_message')))
-        self.assertIsNotNone(element)
-        self.assertEqual(element.text, 'Payment Saved!')
-
-        elements = self.selenium.find_elements_by_xpath(
-            '//tr[@data-payment_id = "%s"]/td[contains(@class, "calendar__payment_category")]' % payment_id)
-        self.assertGreater(len(elements), 1)
-        self.assertEqual(elements[0].text, 'pt1a -\ncat1a -\nsubcat1a')
-        self.assertEqual(elements[1].text, 'pt1a -\ncat1a -\nsubcat1a')
-
-    def test_ui_update_payment_type_no_category(self):
-        p = Payment.objects.get(title="Payment 2")
-        payment_id = str(p.id)
-        row_id = '%d|%s' % (p.id, str(p.schedule.next_date))
-        row_xpath = '//tr[@data-row_id = "%s"]' % row_id
-
-        WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located(
-            (By.XPATH, row_xpath + '//div[contains(@class, "calendar__payment_classification")]'))).click()
-        sleep(1)
-
-        WebDriverWait(self.selenium, 1).until(ec.visibility_of_element_located(
-            (By.XPATH, row_xpath + "//div[@id = 'id_payment_type_chosen']")))
-        self.assertEqual('pt1', chosen_single_select_text(self, "//select[@id = 'id_payment_type']/.."))
-        select_chosen_by_class(self, "//select[@id = 'id_payment_type']/..", "pt1a")
-
-        self.selenium.find_element_by_class_name('button__calendar_edit__classification_update').click()
-        sleep(1)
-
-        element = WebDriverWait(self.selenium, 1) \
-            .until(ec.visibility_of_element_located((By.ID, 'div__user_message')))
-        self.assertIsNotNone(element)
-        self.assertEqual(element.text, 'Payment Saved!')
-
-        elements = self.selenium.find_elements_by_xpath(
-            '//tr[@data-payment_id = "%s"]/td[contains(@class, "calendar__payment_category")]' % payment_id)
-        self.assertGreater(len(elements), 1)
-        self.assertEqual(elements[0].text, 'pt1a')
-        self.assertEqual(elements[1].text, 'pt1a')
 
 
 class TestCategoryManagement(StaticLiveServerTestCase):
@@ -2338,9 +2287,7 @@ class TestBankAccountManagement(StaticLiveServerTestCase):
     def setUp(cls):
         d = DesiredCapabilities.CHROME
         d['loggingPrefs'] = {'browser': 'ALL'}
-        chrome_options = Options()
-        chrome_options.add_argument("--start-maximized")
-        cls.selenium = WebDriver(desired_capabilities=d, chrome_options=chrome_options)
+        cls.selenium = WebDriver(desired_capabilities=d)
         cls.selenium.implicitly_wait(1)
         test_users()
         test_categories()
@@ -2359,26 +2306,11 @@ class TestBankAccountManagement(StaticLiveServerTestCase):
 
     def test_create_bank_account(self):
         WebDriverWait(self.selenium, 1) \
-            .until(ec.presence_of_element_located((By.ID, 'btn__new_debit_account'))).click()
-        sleep(1)
+            .until(ec.presence_of_element_located((By.ID, 'href__add_account'))).click()
+        sleep(2)
         elements = WebDriverWait(self.selenium, 1) \
-            .until(ec.presence_of_all_elements_located((By.XPATH, '//table[@id="table__debit_accounts"]'
-                                                                  '//td[contains(@class, "td__bank_account_title")]')))
-        self.assertEqual(1, len(list(ba for ba in elements if ba.text == 'Debit Account #1')))
-
-        self.selenium.find_element_by_id('btn__new_credit_account').click()
-        sleep(1)
-        elements = WebDriverWait(self.selenium, 1) \
-            .until(ec.presence_of_all_elements_located((By.XPATH, '//table[@id="table__credit_accounts"]'
-                                                                  '//td[contains(@class, "td__bank_account_title")]')))
-        self.assertEqual(1, len(list(ba for ba in elements if ba.text == 'Credit Account #1')))
-
-        self.selenium.find_element_by_id('btn__new_virtual_account').click()
-        sleep(1)
-        elements = WebDriverWait(self.selenium, 1) \
-            .until(ec.presence_of_all_elements_located((By.XPATH, '//table[@id="table__credit_accounts"]'
-                                                                  '//td[contains(@class, "td__bank_account_title")]')))
-        self.assertEqual(1, len(list(ba for ba in elements if ba.text == 'Virtual Account #1')))
+            .until(ec.presence_of_all_elements_located((By.CLASS_NAME, 'td__bank_account_title')))
+        self.assertEqual(1, len(list(ba for ba in elements if ba.text == 'Bank Account #1')))
 
     def test_only_1_account_editable(self):
         elements = WebDriverWait(self.selenium, 1) \
@@ -2396,18 +2328,14 @@ class TestBankAccountManagement(StaticLiveServerTestCase):
         self.assertEqual(0, len(elements))
 
     def test_account_update(self):
-        debit_account_id_xpath = '//tr[@data-bank_account_id = "%d"]' % BankAccount.objects.filter(
+        account_id_xpath = '//tr[@data-bank_account_id = "%d"]' % BankAccount.objects.filter(
             title__iexact="john account").get().pk
-        credit_account_id_xpath = '//tr[@data-bank_account_id = "%d"]' % BankAccount.objects.filter(
-            title__iexact="john credit account").get().pk
-        virtual_account_id_xpath = '//tr[@data-bank_account_id = "%d"]' % BankAccount.objects.filter(
-            title__iexact="john virtual account").get().pk
 
         # Update title
         WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located(
-            (By.XPATH, debit_account_id_xpath + '/td[contains(@class,"td__bank_account_title")]'))).click()
+            (By.XPATH, '//td[contains(@class,"td__bank_account_title")][text() = "john account"]'))).click()
         WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located(
-            (By.XPATH, debit_account_id_xpath + '//input[@value = "john account"]')))\
+            (By.XPATH, '//td[contains(@class,"td__bank_account_title")]/input[@value = "john account"]')))\
             .send_keys('john account updated' + Keys.RETURN)
         sleep(1)
 
@@ -2423,56 +2351,38 @@ class TestBankAccountManagement(StaticLiveServerTestCase):
 
         # Update balance
         WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located((By.XPATH,
-            debit_account_id_xpath + '/td[contains(@class,"td__bank_account_balance")]'))).click()
+            account_id_xpath + '/td[contains(@class,"td__bank_account_balance")]'))).click()
         sleep(1)
         element = WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located(
-            (By.XPATH, debit_account_id_xpath + '/td[contains(@class,"td__bank_account_balance")]/input')))
+            (By.XPATH, account_id_xpath + '/td[contains(@class,"td__bank_account_balance")]/input')))
         element.send_keys('2000' + Keys.RETURN)
         sleep(1)
 
         element = WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located((By.XPATH,
-            debit_account_id_xpath + '/td[contains(@class,"td__bank_account_balance")]')))
+            account_id_xpath + '/td[contains(@class,"td__bank_account_balance")]')))
         self.assertEqual('$2,000.00', element.text)
         elements = self.selenium.find_elements_by_xpath(
-            debit_account_id_xpath + '/td[contains(@class,"td__bank_account_balance")]/input')
+            account_id_xpath + '/td[contains(@class,"td__bank_account_balance")]/input')
         self.assertEqual(0, len(elements))
         element = self.selenium.find_element_by_xpath('//div[contains(@class, "calendar__curr_budget_balance")]')
         self.assertEqual('$1,800.00', element.text)
 
-    def test_account_reorder(self):
-        # Move item 1 to 2
-        ba_trans = WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located(
-            (By.XPATH, '//tr[@data-bank_account_title = "john account"]//span[contains(@class, "grippy")]')))
-        y1 = float(ba_trans.location['y'])
-        ba_credit = self.selenium.find_element_by_xpath('//tr[@data-bank_account_title = "john credit account"]'
-                                                        '//span[contains(@class, "grippy")]')
-        y2 = float(ba_credit.location['y'])
-        ActionChains(self.selenium).drag_and_drop_by_offset(ba_trans, 0, (y2 - y1) + 5).perform()
+        # Update account type
+        WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located((By.XPATH,
+            account_id_xpath + '/td[contains(@class,"td__bank_account_type")]'))).click()
+        sleep(1)
+        select_chosen_by_class(self, account_id_xpath + '/td[contains(@class,"td__bank_account_type")]//select/..',
+                               "Credit")
+        sleep(2)
+        self.selenium.find_element_by_xpath(account_id_xpath +
+            '//button[contains(@class, "cbo__edit_bank_account_type_ok")]').click()
         sleep(1)
 
-        self.assertEqual('john credit account',
-                         self.selenium.find_element_by_xpath('//table[@id="table__accounts"]/tbody/tr[1]')
-                         .get_attribute('data-bank_account_title'))
-        self.assertEqual('john account',
-                         self.selenium.find_element_by_xpath('//table[@id="table__accounts"]/tbody/tr[2]')
-                         .get_attribute('data-bank_account_title'))
-
-        # Move item 3 to 1
-        ba_credit = self.selenium.find_element_by_xpath('//tr[@data-bank_account_title = "john credit account"]'
-                                                        '//span[contains(@class, "grippy")]')
-        y1 = float(ba_credit.location['y'])
-        ba_virtual = self.selenium.find_element_by_xpath('//tr[@data-bank_account_title = "john virtual account"]'
-                                                        '//span[contains(@class, "grippy")]')
-        y2 = float(ba_virtual.location['y'])
-        ActionChains(self.selenium).drag_and_drop_by_offset(ba_virtual, 0, -74).perform()
-        sleep(1)
-
-        self.assertEqual('john virtual account',
-                         self.selenium.find_element_by_xpath('//table[@id="table__accounts"]/tbody/tr[1]')
-                         .get_attribute('data-bank_account_title'))
-        self.assertEqual('john credit account',
-                         self.selenium.find_element_by_xpath('//table[@id="table__accounts"]/tbody/tr[2]')
-                         .get_attribute('data-bank_account_title'))
-        self.assertEqual('john account',
-                         self.selenium.find_element_by_xpath('//table[@id="table__accounts"]/tbody/tr[3]')
-                         .get_attribute('data-bank_account_title'))
+        element = WebDriverWait(self.selenium, 1).until(ec.presence_of_element_located((By.XPATH,
+            account_id_xpath + '/td[contains(@class,"td__bank_account_type")]')))
+        self.assertEqual('Credit', element.text)
+        elements = self.selenium.find_elements_by_xpath(account_id_xpath +
+            '//button[contains(@class, "cbo__edit_bank_account_type_ok")]')
+        self.assertEqual(0, len(elements))
+        element = self.selenium.find_element_by_xpath('//div[contains(@class, "calendar__curr_budget_balance")]')
+        self.assertEqual('$0.00', element.text)

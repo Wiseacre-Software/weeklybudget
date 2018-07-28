@@ -1,0 +1,16 @@
+<form id='form__bank_account_update' method="post">
+    <table>
+        <tr>
+            <td>{{ form.title }}</td>
+            <td>{{ form.current_balance }}</td>
+            <td>{{ form.account_type }}</td>
+        </tr>
+        <tr>
+            <td colspan="3" style="text-align: right"><input type="submit" value="Add"/></td>
+        </tr>
+    </table>
+</form>
+<script>
+    var result = '{{ result }}';
+    initBankAccountForm();
+</script>

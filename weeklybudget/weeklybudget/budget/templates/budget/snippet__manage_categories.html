@@ -1,0 +1,145 @@
+    <form id="form__manage_categories">
+    <input type="hidden" id="payment_id" name="payment_id" />
+        <table id="table__manage_categories">
+            <tr class="tr__manage_categories_list_labels">
+                <td style="width:30%">
+                    <div>
+                        <span class="tr__manage_categories_list_labels_label"><label>Payment Type</label></span>
+                        <span class="tr__manage_categories_list_labels_button"><button id="button__payment_type_add" class="button__add">Add</button></div>
+                    </div>
+                </td>
+                <td style="width:30%">
+                    <div>
+                        <span class="tr__manage_categories_list_labels_label"><label>Category</label></span>
+                        <span class="tr__manage_categories_list_labels_button"><button id="button__category_add" class="button__add">Add</button></div>
+                    </div>
+                <td style="width:30%">
+                    <div>
+                        <span class="tr__manage_categories_list_labels_label"><label>Subcategory</label></span>
+                        <span class="tr__manage_categories_list_labels_button"><button id="button__subcategory_add" class="button__add">Add</button></div>
+                    </div>
+                </td>
+                <td class="td_spacer" style="width:10%"></td>
+            </tr>
+            <tr id="tr__manage_categories_lists">
+                <td>
+                    {{ form.selected_payment_type }}
+                    {{ form.updated_payment_type }}
+                    <div>
+                        <table id="id__manage_categories_payment_types" class="table__manage_categories">
+                            {% for pt_id, pt_name in manage_payment_types.items %}
+                            <tr data-payment_type_id="{{ pt_id }}">
+                                <td class="td__manage_categories_payment_types_name">{{ pt_name }}</td>
+                                <td class="td__manage_categories_payment_types_action"><button class="button__manage_categories_payment_types_delete">Delete</button></td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </td>
+                <td>
+                    {{ form.selected_category }}
+                    {{ form.updated_category }}
+                    <div>
+                        <table id="id__manage_categories_categories" class="table__manage_categories">
+                            {% for c_id, c_name in manage_categories.items %}
+                            <tr data-category_id="{{ c_id }}">
+                                <td class="td__manage_categories_categories_name">{{ c_name }}</td>
+                                <td class="td__manage_categories_categories_action"><button class="button__manage_categories_categories_delete">Delete</button></td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </td>
+                <td>
+                    {{ form.selected_subcategory }}
+                    {{ form.updated_subcategory }}
+                    <div>
+                        <table id="id__manage_categories_subcategories" class="table__manage_categories">
+                            {% for sc_id, sc_name in manage_subcategories.items %}
+                            <tr data-subcategory_id="{{ sc_id }}">
+                                <td class="td__manage_categories_subcategories_name">{{ sc_name }}</td>
+                                <td class="td__manage_categories_subcategories_action"><button class="button__manage_categories_subcategories_delete">Delete</button></td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </td>
+            </tr>
+            <tr class="tr__category_update">
+                <td id="td__payment_type_update">
+                    <input type="text" id="txt__payment_type_update"  existingEntry="id_manage_payment_type" />
+                    <button id="button__payment_type_update" class="button__update">Update</button>
+                    <button id="button__payment_type_cancel" class="button__cancel">Cancel</button>
+                </td>
+                <td id="td__category_update">
+                    <input type="text" id="txt__category_update" existingEntry="id_manage_category"/>
+                    <button id="button__category_update" class="button__update">Update</button>
+                    <button id="button__category_cancel" class="button__cancel">Cancel</button>
+                </td>
+                <td id="td__subcategory_update">
+                    <input type="text" id="txt__subcategory_update" existingEntry="id_manage_subcategory"/>
+                    <button id="button__subcategory_update" class="button__update">Update</button>
+                    <button id="button__subcategory_cancel" class="button__cancel">Cancel</button>
+                </td>
+                <td><button id="button__manage_categories_done" style="margin-left: 10px">Done</button></td>
+            </tr>
+            <tr id="tr__category_update_validation_errors">
+                <td>
+                    <div class="valid error_message_field ui-state-error ui-corner-all">
+                        <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                        <label id="txt__payment_type_update-error" class="error ui-widget" for="txt__payment_type_update"></label>
+                    </div>
+                </td>
+                <td>
+                    <div class="valid error_message_field ui-state-error ui-corner-all">
+                        <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                        <label id="button__category_update-error" class="error ui-widget" for="txt__category_update"></label>
+                    </div>
+                </td>
+                <td>
+                    <div class="valid error_message_field ui-state-error ui-corner-all">
+                        <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                        <label id="txt__subcategory_update-error" class="error ui-widget" for="txt__subcategory_update"></label>
+                    </div>
+                </td>
+            </tr>
+            <tr id="tr__manage_categories_actions" style="display: none">
+                <td>
+                    <button id="button__edit_payment_type">Edit</button>
+                    <button id="button__new_payment_type">New</button>
+                    <button id="button__delete_payment_type">Delete</button>
+                </td>
+                <td id="td__category_buttons">
+                    <button id="button__edit_category">Edit</button>
+                    <button id="button__new_category">New</button>
+                    <button id="button__delete_category">Delete</button>
+                </td>
+                <td id="td__subcategory_buttons">
+                    <button id="button__edit_subcategory">Edit</button>
+                    <button id="button__new_subcategory">New</button>
+                    <button id="button__delete_subcategory">Delete</button>
+                </td>
+
+            </tr>
+        </table>
+    </form>
+
+    <div id="div__manage_categories__error_messages" class="error_message">
+        <div class="ui-state-error ui-corner-all" style="padding: 0 .7em;">
+            <p>
+                <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                <strong>Alert: </strong><span id="span__manage_categories__error_messages" class="ui-widget"></span>
+            </p>
+        </div>
+    </div>
+
+    <script language="javascript">
+        try {
+            categorymap = jQuery.parseJSON("{{ categorymap }}");
+            var updated_payments = jQuery.parseJSON(_.unescape("{{ payments }}"));
+        } catch (e) {
+            console.log('context not read in: ' + e);
+        }
+
+        initManageCategories(categorymap);
+    </script>

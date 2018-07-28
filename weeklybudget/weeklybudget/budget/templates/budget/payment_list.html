@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load babel %}
+
+{% block content %}
+
+
+    <div class="content_section row">
+        <div id="div__user_message" class="result-message-box ui-state-highlight ui-corner-all" style="display: none">
+            <span class="ui-icon result-icon"></span>
+            <span class="result-message-text"></span>
+        </div>
+    </div>
+    <div class="content_section row">
+
+        <div class="calendar_pane col">
+            <div class="calendar_search">
+                <table width="100%">
+                    <tr>
+                        <td width="85%"><input id="txt__calendar_search"></td>
+                        <td width="15%" align="right">
+                            <button id="btn__calendar_search_next">Search Next</button>
+                            <button id="btn__calendar_search_prev">Search Previous</button>
+                            <button id="btn__calendar_new_payment_from_search">New Payment</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="calendar_view">
+                <div id="div__calendar">
+                    <table id="table__calendar" class="row-border" style="width: 100%">
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Classification</th>
+                            <th>Name</th>
+                            <th>Account</th>
+                            <th>Outgoing</th>
+                            <th>Incoming</th>
+                            <th>Balance</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+
+            <div id="calendar__overlay" class="overlay ui-widget ui-front ui-widget-content ui-corner-all ui-widget-shadow"></div>
+        </div>
+        <div class="col-divider col">
+            <div class="divider">
+                <img id="img__calendar_view_toggle" class="img__divider" src="{% static 'jquery.mobile.images-1.4.5/carat-l-black.png' %}" />
+            </div>
+        </div>
+        <div class="bank_accounts_pane col">
+            <div class="bank_account_view"></div>
+        </div>
+    </div>
+
+    <script type='text/javascript' src="{% static 'bank_account.js' %}"></script>
+    <script type='text/javascript' src="{% static 'calendar_view.js' %}"></script>
+    <script type='text/javascript' src="{% static 'payment_ajax_update_payment.js' %}"></script>
+    <script type='text/javascript' src="{% static 'payment_ajax_manage_categories.js' %}"></script>
+    <script type='text/javascript' src="{% static 'payment_ajax_main.js' %}"></script>
+
+    <script language="javascript">
+        //initialise javascript vars from Django
+
+        //The url to submit the add payment request. From budget.urls
+        var URL__GET_PAYMENTS = "{% url 'budget:get_payments' %}";
+        var URL__UPDATE_PAYMENT = "{% url 'budget:update_payment' %}";
+        var URL__UPDATE_PAYMENT_DATE = "{% url 'budget:update_payment_date' %}";
+        var URL__UPDATE_PAYMENT_CLASSIFICATION = "{% url 'budget:update_payment_classification' %}";
+        var URL__UPDATE_PAYMENT_PARTIAL = "{% url 'budget:update_payment_partial' %}";
+        var URL__MANAGE_CATEGORIES = "{% url 'budget:manage_categories' %}";
+        var URL__CALENDAR_VIEW = "{% url 'budget:generate_calendar_view' %}";
+        var URL__BANK_ACCOUNT_VIEW = "{% url 'budget:bank_account_view' %}";
+        var URL__GET_ACCOUNTS_JSON = "{% url 'budget:get_accounts_json' %}";
+
+        // images
+        var SRC__MOBILE_IMAGES = "{% static 'jquery.mobile.images-1.4.5' %}";
+
+        // other env vars
+        var userLanguage = "{{ userLanguage }}";
+        moment.locale(userLanguage);
+
+        categorymap = jQuery.parseJSON("{{ categorymap }}");
+        var calendar_search_terms = [ {% for term in calendar_search_terms %}_.unescape('{{ term }}'), {% endfor %} ];
+        initCalendarView();
+        loadBankAccounts();
+    </script>
+
+{% endblock %}
